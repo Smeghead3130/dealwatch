@@ -8,6 +8,17 @@ certifi==2026.7.22
     # via
     #   httpcore
     #   httpx
+    #   requests
+charset-normalizer==3.5.2
+    # via requests
+future==1.0.0
+    # via gkeepapi
+gkeepapi==0.17.1
+    # via dealwatch (pyproject.toml)
+gpsoauth==2.0.0
+    # via
+    #   dealwatch (pyproject.toml)
+    #   gkeepapi
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -18,8 +29,11 @@ idna==3.20
     # via
     #   anyio
     #   httpx
+    #   requests
 lxml==6.1.3
     # via dealwatch (pyproject.toml)
+pycryptodomex==3.24.1
+    # via gpsoauth
 pydantic==2.14.1
     # via
     #   dealwatch (pyproject.toml)
@@ -30,6 +44,8 @@ pydantic-settings==2.15.0
     # via dealwatch (pyproject.toml)
 python-dotenv==1.2.4
     # via pydantic-settings
+requests==2.34.2
+    # via gpsoauth
 typing-extensions==4.16.0
     # via
     #   anyio
@@ -42,3 +58,7 @@ typing-inspection==0.4.4
     #   pydantic-settings
 tzdata==2026.5
     # via dealwatch (pyproject.toml)
+urllib3==2.8.0
+    # via
+    #   gpsoauth
+    #   requests

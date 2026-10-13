@@ -6,8 +6,8 @@ scrape comments, perform web searches or require a wishlist.
 
 ## Deployment boundary
 
-The build produces `ghcr.io/smeghead3130/dealwatch:v0.1.0` through GitHub Actions. See
-`HANDOVER.md` for the actual release/test status and any package-visibility action still needed.
+The build produces `ghcr.io/smeghead3130/dealwatch:v0.2.0` through GitHub Actions. See
+`HANDOVER.md` for the actual release/test status and live verification and deployment steps.
 NAS deployment is intentionally left to Claude. Do not assume that a successful image build
 means the application has been tested on the NAS or that a phone received a notification.
 
@@ -30,7 +30,7 @@ model, variant, condition, quantity, bundle, import status and price/eligibility
   or free-item-with-small-delivery signal, capped at five per local calendar day. A claim of
   clearance is a weak signal: this tier intentionally accepts some noise and can be disabled
   by setting `POSSIBLE_DAILY_LIMIT=0`.
-- RRP alone, votes alone and wishlist matches never trigger alerts. Deposits, subscriptions,
+- RRP alone and votes alone never trigger alerts. Wishlist rules are described below. Deposits, subscriptions,
   excluded categories and accessory listings are rejected. Cashback is not subtracted.
 
 Price is the explicitly advertised upfront price after a stated coupon, plus stated shipping.
@@ -45,7 +45,7 @@ long outage can miss items that have left the 30-item feed. History improves ove
 
 ## TrueNAS installation (Claude)
 
-1. Create `/mnt/Apps/dealwatch/data`, writable by UID/GID `568:568` using suitable dataset ACLs.
+1. Create `/mnt/Apps/dealwatch_config`, writable by UID/GID `568:568` using suitable dataset ACLs.
 2. Confirm the image is public and anonymously pullable; package visibility can require a
    one-time change under GitHub → profile → Packages → dealwatch → Package settings.
 3. In Apps → Discover Apps → menu → Install via YAML, paste `compose.truenas.yaml`.
@@ -90,8 +90,9 @@ The alternative is `dealwatch_user` plus `dealwatch_password`. Do not use `mat_*
 The publisher can write only to `dealwatch-*` topics. Never copy these values into the repository.
 The committed YAML deliberately contains empty credential placeholders and requires this deployment step.
 
-V1 supports LAN notification delivery. Remote access through authenticated `ntfy.nethos.org`
-and NPM is a later deployment task; change `NTFY_URL` when it is ready. iOS is out of scope.
+Mat has working remote Android delivery through authenticated `https://ntfy.nethos.org`.
+Keep the app’s `NTFY_URL` on the LAN address. Local router DNS may block the public hostname;
+that does not affect the app. iOS is out of scope.
 
 ## All environment variables
 
@@ -106,7 +107,7 @@ variables and are not printed by status or logs.
 | FEED_URL | `https://www.ozbargain.com.au/deals/feed` | RSS URL |
 | USER_AGENT | `Mozilla/5.0 (compatible; Dealwatch/0.1; personal deal monitor)` | HTTP user agent |
 | OLLAMA_URL | `http://192.168.50.157:30069` | gpu-guard proxy; direct port 30068 rejected |
-| LLM_MODEL | `qwen3.5:9b` | Primary extraction model |
+| LLM_MODEL | `qwen3.5:9b` | Extraction and wishlist matching model |
 | FALLBACK_MODEL | `qwen3.5:4b` | After two primary timeouts |
 | LLM_TIMEOUT | `300` | Seconds per inference request |
 | NTFY_URL | `http://192.168.50.157:30184` | ntfy base URL |
@@ -118,6 +119,12 @@ variables and are not printed by status or logs.
 | QUIET_HOURS | empty | Optional `22:00-07:00`; lowers priority to 2 |
 | HISTORY_RATIO | `0.70` | Maximum current/reference ratio for local history |
 | QUOTED_RATIO | `0.75` | Maximum ratio for a named comparison in the post |
+| KEEP_EMAIL | empty | Dedicated Google account; empty with token empty selects file mode |
+| KEEP_MASTER_TOKEN | empty | Secret from desktop helper; never use a personal account |
+| KEEP_NOTE_TITLE | `Wishlist` | Case-insensitive trimmed title; latest edited duplicate wins |
+| KEEP_SYNC_MINUTES | `15` | Independent sync interval; retries back off to one hour |
+| WISHLIST_HISTORY_RATIO | `0.85` | Matched-item local-history ratio |
+| WISHLIST_QUOTED_RATIO | `0.85` | Matched-item quoted-comparison ratio |
 | MIN_OBSERVATIONS | `3` | Minimum distinct earlier nodes; cannot be below 3 |
 | HISTORY_DAYS | `180` | Comparison window, at most available retained history |
 | POSSIBLE_DAILY_LIMIT | `5` | Per local calendar day; 0 disables possible alerts |
@@ -126,9 +133,58 @@ variables and are not printed by status or logs.
 | EXCLUDE_CATEGORIES | `Financial,Credit Card,Bank Account,Mobile Plans,Internet,Internet Plans,Gambling,Subscription` | Case-insensitive exact category matches; additional title guards cover plan/signup/subscription offers |
 | LOG_LEVEL | `INFO` | Application JSON logs |
 
-`/data/wishlist.txt` is optional, one item per line. Blank lines and `#`, `//`, `~` comments are
-ignored. V1 annotates alerts with simple product-word overlap; it is not semantic Keep matching
-and cannot cause an alert. No other data-file overrides or external search keys are used in v1.
+## Shared Google Keep wishlist
+
+Use a **dedicated Google account** for Dealwatch and share the wishlist note with it. The master
+token is an account credential, not a note-scoped permission: do not use a personal account.
+[gkeepapi](https://gkeepapi.readthedocs.io/en/latest/) is unofficial and may stop working after
+Google changes its service. Dealwatch is read-only and keeps its last successful list on failure.
+
+Desktop setup (Mat, with Claude helping):
+
+1. Create the dedicated account, then share your existing Keep note with it. Keep the title
+   `Wishlist`, or tell Claude the title you chose. Your partner can keep using the same note/widget.
+2. After installing the development dependencies below, run `.venv/bin/python scripts/keep_token.py`.
+3. Follow its three short prompts: private browser, sign into the dedicated account at
+   [Google EmbeddedSetup](https://accounts.google.com/EmbeddedSetup), then copy the `oauth_token`
+   cookie from F12 → Application/Storage → Cookies into the hidden terminal prompt.
+4. The helper exchanges the cookie using [gpsoauth](https://github.com/simon-weber/gpsoauth) and
+   saves `KEEP_EMAIL` and `KEEP_MASTER_TOKEN` in `~/.config/dealwatch-keep`, mode 600. It never
+   prints the token. Close the private browser. Claude loads the file privately when deploying;
+   **do not paste its contents into chat or commit it**. `--replace` renews an existing credential.
+
+List notes use only unchecked items; text notes use one item per line. Duplicate note titles
+select the most recently edited note and log a warning. Matching is title-based, regardless of
+who owns the note. There is no writeback or automatic checking-off.
+
+Examples: `Sony WH-1000XM6`, `Sony WH-1000XM6 <= 350`, `Samsung T7 2TB under $170`.
+Targets are parsed in Python. `<=` includes equality; literal `under` is strict. Malformed price
+suffixes have no target. Explicit model, capacity and condition requirements must be met.
+Normalized product tokens select candidates, then a separate JSON-schema Ollama call checks
+identity. Only `same_product` qualifies; uncertain variants and accessories do not. Match reasons
+are stored in decisions. Instruction-like wishlist entries are skipped before matching.
+
+A verified match permits the 85% historical/quoted ratios above. A target item also requires
+known delivery and a landed price meeting its target before it can relax thresholds. A target hit
+can alert without a comparison price, with **Wishlist target hit** in the title and priority 4;
+it is not a steal claim. Above-target items can still qualify under the ordinary steal rules.
+Membership/coupons/condition remain disclosed, cashback is never subtracted, and all existing
+expiry, stale, category, evidence and possible-alert limits remain in force. Quiet hours still
+reduce delivery priority. Wishlist membership alone cannot trigger a possible alert.
+
+The sync task runs independently of judging/polling. Synchronous Google I/O runs in a child
+process with a 120-second limit. Incremental state is cached privately in `/data/keep_state.json`;
+the usable last-good list and sync status persist in SQLite. Missing notes/auth failures preserve
+the last-good list and set `keep_sync_degraded`. After six continuous hours of failure, one warning
+is queued; after recovery, one recovery notice is queued. Short failures recover silently.
+Notice episodes survive restarts and respect `DRY_RUN`; delivery has the same at-least-once
+transport limitation as deal alerts. These notices are independent of deal expiry.
+
+If both Keep credentials are empty, `/data/wishlist.txt` supplies the same matching/target rules.
+Blank lines and `#`, `//`, `~` comments are ignored. If either Keep field is set, Keep takes
+precedence; incomplete credentials are a sync error rather than silently switching sources.
+`python -m dealwatch wishlist` prints source, items, last sync and degraded state; it reads the
+cached Keep list, so allow the service’s first sync to finish. A missing unconfigured file is empty.
 
 ## CLI and development
 
@@ -137,12 +193,13 @@ python -m venv .venv
 .venv/bin/pip install -r requirements-test.lock
 .venv/bin/pip install --no-deps -e .
 .venv/bin/pytest -q
-.venv/bin/ruff check src tests
+.venv/bin/ruff check src tests scripts
 ```
 
 ```sh
 python -m dealwatch run
 python -m dealwatch status
+python -m dealwatch wishlist
 python -m dealwatch judge 978852 --refresh
 python -m dealwatch replay --hours 24
 python -m dealwatch evaluate --split heldout
@@ -164,7 +221,7 @@ the data directory. Interrupted jobs are recovered on restart. Decisions and pen
 commit together. Price observations count each node once, not each poll or revision.
 
 Notifications are unique per node and class. A possible alert may receive one evidence-backed
-upgrade. V1 does not repeatedly notify price changes within the same class. Changed offers
+upgrade. Dealwatch does not repeatedly notify price changes within the same class. Changed offers
 invalidate queued old notifications. Unavailable or stale items are suppressed before sending.
 Network errors retry with bounded exponential delay until an alert becomes stale.
 
@@ -188,7 +245,9 @@ Stop the app and copy the entire `/data` directory, including SQLite WAL/SHM fil
 or take a consistent ZFS snapshot of the dataset. Never copy only a live `.db` while ignoring
 its WAL. Model data and ntfy storage are managed by their existing apps.
 
-To roll back, stop the app, pin a previous tested image tag and start it. Startup refuses to
+v0.2.0 migrates SQLite schema 1 to 2 on first open (including CLI commands). Before upgrading,
+stop the app and snapshot **Apps/dealwatch_config**. To roll back to v0.1.0, stop the app,
+restore that pre-upgrade snapshot, then pin the v0.1.0 image and start it. Startup refuses to
 open a database with a schema newer than the application supports. If schema compatibility
 blocks rollback, restore the matching pre-upgrade snapshot first. Preserve the production topic
 and send history to avoid resubscription and routine duplicate alerts.

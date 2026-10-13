@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -40,22 +39,18 @@ def payload(deal, ex, decision, config):
     ]
     parts.extend(decision.restrictions)
     parts.extend(decision.sources[:3])
-    wishlist = config.data_dir / "wishlist.txt"
-    if wishlist.exists():
-        # Optional relevance annotation only; never involved in the alert decision.
-        product_words = set(re.findall(r"[a-z0-9]+", title.casefold()))
-        relevant = []
-        for line in wishlist.read_text()[:16000].splitlines():
-            if line.strip() and not line.lstrip().startswith(("#", "//", "~")):
-                words = set(re.findall(r"[a-z0-9]+", line.casefold()))
-                if len(words & product_words) >= 2:
-                    relevant.append(line.strip())
-        if relevant:
-            parts.append("Wishlist relevance (text overlap): " + "; ".join(relevant[:3]))
+    if decision.kind == "wishlist_target":
+        title = "Wishlist target hit: " + title
+        parts[0] = "Wishlist target hit"
+    elif decision.kind == "evidence" and decision.wishlist_applied:
+        title = "Wishlist deal: " + title
+        parts[0] = "Wishlist deal — supported comparison"
+    for match in decision.wishlist_matches:
+        parts.append("Wishlist: " + match.item.text + " — " + match.reason)
     result = {
         "title": f"{title} — A${decision.effective_price:.2f}"[:220],
         "message": "\n".join(parts)[:3900],
-        "priority": 4 if decision.kind == "evidence" else 3,
+        "priority": 4 if decision.kind in ("evidence", "wishlist_target") else 3,
         "tags": ["shopping_cart"],
     }
     if url := safe_url(deal.deal_url):
@@ -94,7 +89,9 @@ async def notify_once(client, db, config, now=None):
         return False
     stored = db.deal(row["node"])
     reason = None
-    if not stored:
+    if row["node"] == 0 and row["kind"].startswith("keep_"):
+        pass  # Service notices are independent of deal expiry/revisions.
+    elif not stored:
         reason = "Deal no longer stored"
     else:
         deal = Deal.model_validate_json(stored["json"])

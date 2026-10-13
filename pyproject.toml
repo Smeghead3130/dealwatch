@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dealwatch"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-first Australian deal alerts for TrueNAS"
 requires-python = ">=3.12"
-dependencies = ["httpx>=0.28,<0.29", "lxml>=6,<7", "pydantic>=2.11,<3", "pydantic-settings>=2.9,<3", "tzdata>=2025.1"]
+dependencies = ["httpx>=0.28,<0.29", "lxml>=6,<7", "pydantic>=2.11,<3", "pydantic-settings>=2.9,<3", "tzdata>=2025.1", "gkeepapi==0.17.1", "gpsoauth==2.0.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10", "pytest-asyncio>=1,<2", "ruff>=0.12"]

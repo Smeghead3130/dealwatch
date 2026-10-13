@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "from_schema": 1,
+  "to_schema": 2,
+  "topic_preserved": true,
+  "v010_refuses_v020_schema": true,
+  "network": "none",
+  "images": [
+    "ghcr.io/smeghead3130/dealwatch:v0.1.0",
+    "dealwatch:v0.2.0-local"
+  ]
+}

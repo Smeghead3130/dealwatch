@@ -24,6 +24,12 @@ class Config(BaseSettings):
     ntfy_password: SecretStr = SecretStr("")
     dry_run: bool = True
     quiet_hours: str = ""
+    keep_email: str = ""
+    keep_master_token: SecretStr = SecretStr("")
+    keep_note_title: str = "Wishlist"
+    keep_sync_minutes: int = Field(15, ge=1, le=1440)
+    wishlist_history_ratio: float = Field(0.85, gt=0, lt=1)
+    wishlist_quoted_ratio: float = Field(0.85, gt=0, lt=1)
     history_ratio: float = Field(0.70, gt=0, lt=1)
     quoted_ratio: float = Field(0.75, gt=0, lt=1)
     min_observations: int = Field(3, ge=3)

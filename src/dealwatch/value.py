@@ -82,7 +82,7 @@ def restrictions(ex):
     return result
 
 
-def decide(deal, ex, history, config, now):
+def base_decide(deal, ex, history, config, now):
     if reason := deal.unavailable(now):
         return Decision(kind="none", reason=reason)
     if excluded(deal, config):
@@ -138,3 +138,46 @@ def decide(deal, ex, history, config, now):
     return Decision(
         kind="none", reason="No qualifying comparable evidence or explicit exceptional-value signal", **common
     )
+
+
+def decide(deal, ex, history, config, now, matches=None):
+    """Leave the original decision path untouched unless a verified wishlist match applies."""
+    if not matches or deal.unavailable(now) or excluded(deal, config) or validate_facts(deal, ex):
+        return base_decide(deal, ex, history, config, now)
+    effective = ex.price + (ex.shipping or Decimal(0))
+    eligible = []
+    for match in matches:
+        item = match.item
+        if item.target is None:
+            eligible.append(match)
+        elif ex.shipping is not None and (
+            effective < item.target if item.strict_target else effective <= item.target
+        ):
+            eligible.append(match)
+    targets = [m for m in eligible if m.item.target is not None]
+    if targets:
+        item = targets[0].item
+        return Decision(
+            kind="wishlist_target",
+            reason=f"Wishlist target hit: A${effective:.2f} "
+            f"{'<' if item.strict_target else '<='} A${item.target:.2f}. This is a target hit, not a steal claim.",
+            effective_price=effective,
+            restrictions=restrictions(ex),
+            sources=[deal.deal_url],
+            wishlist_matches=matches,
+            wishlist_applied=True,
+        )
+    adjusted = (
+        config.model_copy(
+            update={
+                "history_ratio": config.wishlist_history_ratio,
+                "quoted_ratio": config.wishlist_quoted_ratio,
+            }
+        )
+        if eligible
+        else config
+    )
+    result = base_decide(deal, ex, history, adjusted, now)
+    result.wishlist_matches = matches
+    result.wishlist_applied = bool(eligible)
+    return result

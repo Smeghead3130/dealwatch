@@ -6,7 +6,7 @@ from datetime import timedelta
 from .feed import revision_hash
 from .models import Deal, utcnow
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class Store:
@@ -41,6 +41,16 @@ class Store:
                 payload TEXT, state TEXT DEFAULT 'pending', attempts INTEGER DEFAULT 0,
                 next_at TEXT, created TEXT, sent TEXT, error TEXT, UNIQUE(node,kind));
             PRAGMA user_version=1;
+            COMMIT;
+            """)
+            version = 1
+        if version == 1:
+            self.conn.executescript("""
+            BEGIN;
+            CREATE TABLE wishlist_state(source TEXT PRIMARY KEY, items TEXT NOT NULL DEFAULT '[]',
+                last_sync TEXT, failed_since TEXT, notice_queued INTEGER NOT NULL DEFAULT 0,
+                failures INTEGER NOT NULL DEFAULT 0, next_sync TEXT, error TEXT);
+            PRAGMA user_version=2;
             COMMIT;
             """)
 
@@ -234,6 +244,7 @@ class Store:
             "topic": self.topic(config.ntfy_topic),
             "dry_run": config.dry_run,
             "schema": SCHEMA_VERSION,
+            "wishlist": self.wishlist_status(config),
             "last_poll": self.meta("last_poll"),
             "last_feed_error": self.meta("feed_error"),
             "last_judge": self.meta("last_judge"),
@@ -245,6 +256,104 @@ class Store:
             "observations": self.conn.execute("SELECT COUNT(*) FROM observations").fetchone()[0],
             "last_sent": self.conn.execute("SELECT MAX(sent) FROM outbox").fetchone()[0],
         }
+
+    def wishlist_state(self, source):
+        row = self.conn.execute("SELECT * FROM wishlist_state WHERE source=?", (source,)).fetchone()
+        return dict(row) if row else None
+
+    def wishlist_status(self, config):
+        from .wishlist import configured, source_key
+
+        state = self.wishlist_state(source_key(config)) or {}
+        return {
+            "source": "keep" if configured(config) else "file",
+            "last_sync": state.get("last_sync"),
+            "keep_sync_degraded": bool(configured(config) and state.get("failed_since")),
+            "failed_since": state.get("failed_since"),
+            "last_error": state.get("error"),
+            "items": json.loads(state.get("items", "[]")),
+        }
+
+    def _keep_notice(self, source, episode, kind, message, config, now):
+        # Same persistent outbox/delivery semantics as deal alerts; node 0 is reserved for service notices.
+        key = f"keep_{kind}:{source}:{episode}"
+        self.conn.execute(
+            "INSERT OR IGNORE INTO outbox(node,revision,kind,payload,state,next_at,created) "
+            "VALUES(0,'service',?,?,?,?,?)",
+            (
+                key,
+                json.dumps(
+                    {
+                        "title": "Dealwatch Keep sync",
+                        "message": message,
+                        "priority": 3,
+                        "tags": ["warning" if kind == "broken" else "white_check_mark"],
+                    }
+                ),
+                "dry_run" if config.dry_run else "pending",
+                now.isoformat(),
+                now.isoformat(),
+            ),
+        )
+
+    def wishlist_success(self, source, items, config, now):
+        with self.conn:
+            state = self.wishlist_state(source)
+            if state and state["failed_since"] and state["notice_queued"]:
+                self._keep_notice(
+                    source,
+                    state["failed_since"],
+                    "recovered",
+                    "Keep sync recovered; the wishlist is up to date again.",
+                    config,
+                    now,
+                )
+            self.conn.execute(
+                "INSERT OR REPLACE INTO wishlist_state VALUES(?,?,?,NULL,0,0,?,NULL)",
+                (
+                    source,
+                    json.dumps([x.model_dump(mode="json") for x in items]),
+                    now.isoformat(),
+                    (now + timedelta(minutes=config.keep_sync_minutes)).isoformat(),
+                ),
+            )
+
+    def wishlist_failure(self, source, error, config, now):
+        with self.conn:
+            self.conn.execute("INSERT OR IGNORE INTO wishlist_state(source) VALUES(?)", (source,))
+            state = self.wishlist_state(source)
+            failures = state["failures"] + 1
+            delay = min(3600, config.keep_sync_minutes * 60 * 2 ** min(failures - 1, 8))
+            self.conn.execute(
+                "UPDATE wishlist_state SET failed_since=COALESCE(failed_since,?),failures=?,"
+                "next_sync=?,error=? WHERE source=?",
+                (now.isoformat(), failures, (now + timedelta(seconds=delay)).isoformat(), error, source),
+            )
+        self.maybe_keep_notice(source, config, now)
+        return delay
+
+    def maybe_keep_notice(self, source, config, now):
+        from datetime import datetime
+
+        if not source.startswith("keep:"):
+            return
+        with self.conn:
+            state = self.wishlist_state(source)
+            if (
+                state
+                and state["failed_since"]
+                and not state["notice_queued"]
+                and (now - datetime.fromisoformat(state["failed_since"]) >= timedelta(hours=6))
+            ):
+                self._keep_notice(
+                    source,
+                    state["failed_since"],
+                    "broken",
+                    f"Keep sync broken since {state['failed_since']}. Using the last saved wishlist.",
+                    config,
+                    now,
+                )
+                self.conn.execute("UPDATE wishlist_state SET notice_queued=1 WHERE source=?", (source,))
 
     def prune(self, now=None):
         now = now or utcnow()

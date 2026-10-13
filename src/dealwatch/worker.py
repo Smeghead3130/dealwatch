@@ -10,9 +10,11 @@ import httpx
 from .evidence import LocalHistory, identity
 from .feed import poll_once, retry_delay
 from .judge import judge
+from .keep_sync import sync_once
 from .models import Deal, Decision, utcnow
 from .notify import notify_once, payload
 from .value import validate_facts
+from .wishlist import current_items, source_key
 
 logger = logging.getLogger("dealwatch")
 
@@ -32,7 +34,8 @@ async def judge_once(client, db, config, now=None):
         if now - datetime.fromisoformat(stored["first_seen"]) > timedelta(hours=config.stale_hours):
             ex, decision = None, Decision(kind="none", reason="Stale before judgement")
         else:
-            ex, decision = await judge(client, config, deal, LocalHistory(db), now)
+            items = await current_items(db, config)
+            ex, decision = await judge(client, config, deal, LocalHistory(db), now, items)
         message = payload(deal, ex, decision, config) if ex and decision.kind != "none" else None
         valid = ex and validate_facts(deal, ex) is None
         stored_decision = db.complete(
@@ -118,12 +121,17 @@ async def run(db, config):
                 now = utcnow()
                 (config.data_dir / "heartbeat").write_text(str(now.timestamp()))
                 db.release_upcoming(now)
+                db.maybe_keep_notice(source_key(config), config, now)
                 if last_prune != now.date():
                     db.prune(now)
                     last_prune = now.date()
                 await wait(15)
 
-        tasks = [asyncio.create_task(f()) for f in (poller, judging, notifying, maintenance)]
+        async def wishlist_sync():
+            while not stop.is_set():
+                await wait(await sync_once(db, config))
+
+        tasks = [asyncio.create_task(f()) for f in (poller, judging, notifying, maintenance, wishlist_sync)]
         stopped = asyncio.create_task(stop.wait())
         try:
             done, _ = await asyncio.wait([*tasks, stopped], return_when=asyncio.FIRST_COMPLETED)

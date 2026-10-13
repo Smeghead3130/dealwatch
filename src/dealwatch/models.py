@@ -75,8 +75,21 @@ class Extraction(StrictModel):
     signal_quote: str = ""
 
 
+class WishlistItem(BaseModel):
+    id: str
+    text: str
+    product: str
+    target: Decimal | None = None
+    strict_target: bool = False
+
+
+class WishlistMatch(BaseModel):
+    item: WishlistItem
+    reason: str
+
+
 class Decision(BaseModel):
-    kind: Literal["none", "possible", "evidence"]
+    kind: Literal["none", "possible", "evidence", "wishlist_target"]
     reason: str
     effective_price: Decimal | None = None
     observations: int = 0
@@ -84,3 +97,6 @@ class Decision(BaseModel):
     restrictions: list[str] = []
     model: str = ""
     latency_ms: int = 0
+    wishlist_matches: list[WishlistMatch] = Field(default_factory=list)
+    wishlist_error: str | None = None
+    wishlist_applied: bool = False

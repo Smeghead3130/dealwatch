@@ -1,6 +1,6 @@
 services:
   dealwatch:
-    image: ghcr.io/smeghead3130/dealwatch:v0.1.0
+    image: ghcr.io/smeghead3130/dealwatch:v0.2.0
     user: "568:568"
     restart: unless-stopped
     stop_grace_period: 15s
@@ -10,7 +10,7 @@ services:
     cpus: "1.0"
     mem_limit: 512m
     volumes:
-      - /mnt/Apps/dealwatch/data:/data
+      - /mnt/Apps/dealwatch_config:/data
     tmpfs:
       - /tmp:size=16m,mode=1777
     logging:
@@ -35,6 +35,12 @@ services:
       NTFY_PASSWORD: ""
       DRY_RUN: "true"
       QUIET_HOURS: ""
+      KEEP_EMAIL: ""
+      KEEP_MASTER_TOKEN: ""
+      KEEP_NOTE_TITLE: Wishlist
+      KEEP_SYNC_MINUTES: "15"
+      WISHLIST_HISTORY_RATIO: "0.85"
+      WISHLIST_QUOTED_RATIO: "0.85"
       HISTORY_RATIO: "0.70"
       QUOTED_RATIO: "0.75"
       MIN_OBSERVATIONS: "3"

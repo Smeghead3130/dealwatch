@@ -1,0 +1,1 @@
+{"passed": true, "uid": 568, "read_only": true, "memory_limit": "512m", "cpu_limit": 1, "counts": {"feed": 2, "llm": 2, "notify": 0}, "restart_persistence": true, "healthcheck": true, "wishlist_target": true}

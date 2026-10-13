@@ -14,8 +14,10 @@ from .db import Store
 from .evidence import LocalHistory
 from .feed import poll_once
 from .judge import judge
+from .keep_sync import sync_once
 from .models import Deal, utcnow
 from .notify import publish
+from .wishlist import configured, current_items
 from .worker import run
 
 
@@ -89,6 +91,10 @@ async def command(args, config):
             await run(db, config)
         elif args.cmd == "status":
             print(json.dumps(db.status(config), indent=2))
+        elif args.cmd == "wishlist":
+            if not configured(config):
+                await sync_once(db, config, force=True)
+            print(json.dumps(db.wishlist_status(config), indent=2))
         elif args.cmd == "export":
             rows = db.conn.execute("SELECT node,revision,json,ts FROM decisions ORDER BY ts")
             for row in rows:
@@ -114,7 +120,12 @@ async def command(args, config):
                     if not stored:
                         raise ValueError("Node is not in the current feed or local database")
                     ex, decision = await judge(
-                        client, config, Deal.model_validate_json(stored["json"]), LocalHistory(db)
+                        client,
+                        config,
+                        Deal.model_validate_json(stored["json"]),
+                        LocalHistory(db),
+                        None,
+                        await current_items(db, config),
                     )
                     print(
                         json.dumps(
@@ -132,7 +143,9 @@ async def command(args, config):
                         "SELECT json FROM deals WHERE first_seen>=? ORDER BY first_seen", (since,)
                     ).fetchall():
                         deal = Deal.model_validate_json(row[0])
-                        _, decision = await judge(client, config, deal, LocalHistory(db))
+                        _, decision = await judge(
+                            client, config, deal, LocalHistory(db), None, await current_items(db, config)
+                        )
                         print(
                             json.dumps(
                                 {
@@ -149,7 +162,7 @@ async def command(args, config):
 def main():
     parser = argparse.ArgumentParser(description="Dealwatch: Australian steal alerts")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name in ("run", "status", "export"):
+    for name in ("run", "status", "export", "wishlist"):
         sub.add_parser(name)
     p = sub.add_parser("test-notify")
     p.add_argument("--topic", default="dealwatch-codex-test")

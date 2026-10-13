@@ -18,7 +18,7 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-test.lock
       - run: pip install -r requirements-test.lock && pip install --no-deps -e .
-      - run: ruff check src tests && ruff format --check src tests && pytest -q
+      - run: ruff check src tests scripts && ruff format --check src tests scripts && pytest -q
   image:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')

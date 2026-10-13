@@ -10,3 +10,5 @@ dist/
 *.db*
 work/
 data/
+keep_state.json
+dealwatch-keep
