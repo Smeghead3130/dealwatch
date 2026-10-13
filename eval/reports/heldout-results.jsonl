@@ -1,0 +1,11 @@
+{"id": 31, "expected": "evidence", "actual": "evidence", "model": "qwen3.5:9b", "latency_ms": 6707, "reason": "54.9% below A$399.00 at JB Hi-Fi as quoted by the post (not independently checked); 1 quoted comparison"}
+{"id": 32, "expected": "evidence", "actual": "evidence", "model": "qwen3.5:9b", "latency_ms": 5490, "reason": "47.6% below A$420.00 median of 3 comparable observed OzBargain prices; historical, not current market"}
+{"id": 33, "expected": "possible", "actual": "possible", "model": "qwen3.5:9b", "latency_ms": 5304, "reason": "Possible \u2014 unverified: Clearance"}
+{"id": 34, "expected": "none", "actual": "none", "model": "qwen3.5:9b", "latency_ms": 5649, "reason": "Missing upfront AUD price"}
+{"id": 35, "expected": "none", "actual": "none", "model": "qwen3.5:9b", "latency_ms": 4914, "reason": "Accessory excluded from v1 steal alerts"}
+{"id": 36, "expected": "none", "actual": "none", "model": "qwen3.5:9b", "latency_ms": 5240, "reason": "No qualifying comparable evidence or explicit exceptional-value signal"}
+{"id": 37, "expected": "evidence", "actual": "evidence", "model": "qwen3.5:9b", "latency_ms": 6695, "reason": "55.0% below A$200.00 at Bunnings as quoted by the post (not independently checked); 1 quoted comparison"}
+{"id": 38, "expected": "none", "actual": "none", "model": "qwen3.5:9b", "latency_ms": 5115, "reason": "No qualifying comparable evidence or explicit exceptional-value signal"}
+{"id": 39, "expected": "none", "actual": "none", "model": "qwen3.5:9b", "latency_ms": 5439, "reason": "No qualifying comparable evidence or explicit exceptional-value signal"}
+{"id": 40, "expected": "possible", "actual": "possible", "model": "qwen3.5:9b", "latency_ms": 5186, "reason": "Possible \u2014 unverified: Price Error"}
+{"summary": {"split": "heldout", "cases": 10, "true_positives": 5, "false_positives": 0, "precision": 1.0, "misses": [], "errors": 0, "class_accuracy": 1.0}}

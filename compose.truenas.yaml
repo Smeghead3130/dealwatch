@@ -1,0 +1,46 @@
+services:
+  dealwatch:
+    image: ghcr.io/smeghead3130/dealwatch:v0.1.0
+    user: "568:568"
+    restart: unless-stopped
+    stop_grace_period: 15s
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: "1.0"
+    mem_limit: 512m
+    volumes:
+      - /mnt/Apps/dealwatch/data:/data
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    environment:
+      DATA_DIR: /data
+      TZ: Australia/Brisbane
+      POLL_SECONDS: "120"
+      FEED_URL: https://www.ozbargain.com.au/deals/feed
+      USER_AGENT: "Mozilla/5.0 (compatible; Dealwatch/0.1; personal deal monitor)"
+      OLLAMA_URL: http://192.168.50.157:30069
+      LLM_MODEL: qwen3.5:9b
+      FALLBACK_MODEL: qwen3.5:4b
+      LLM_TIMEOUT: "300"
+      NTFY_URL: http://192.168.50.157:30184
+      NTFY_TOPIC: ""
+      NTFY_TOKEN: ""
+      NTFY_USERNAME: ""
+      NTFY_PASSWORD: ""
+      DRY_RUN: "true"
+      QUIET_HOURS: ""
+      HISTORY_RATIO: "0.70"
+      QUOTED_RATIO: "0.75"
+      MIN_OBSERVATIONS: "3"
+      HISTORY_DAYS: "180"
+      POSSIBLE_DAILY_LIMIT: "5"
+      STALE_HOURS: "6"
+      MAX_JOB_ATTEMPTS: "3"
+      EXCLUDE_CATEGORIES: "Financial,Credit Card,Bank Account,Mobile Plans,Internet,Internet Plans,Gambling,Subscription"
+      LOG_LEVEL: INFO

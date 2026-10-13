@@ -1,0 +1,16 @@
+HTTP/2 200
+date: Tue, 13 Oct 2026 13:49:12 GMT
+content-type: application/rss+xml; charset=utf-8
+server: cloudflare
+last-modified: Tue, 13 Oct 2026 13:46:11 GMT
+etag: "536b7cbbac100fb6b6c42cb5f0170b0f"
+expires: Sun, 19 Nov 1978 05:00:00 GMT
+cache-control: must-revalidate
+access-control-allow-origin: https://www.ozbargain.com.au
+content-security-policy: frame-ancestors 'self';
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+strict-transport-security: max-age=31536000
+permissions-policy: browsing-topics=self
+cf-cache-status: DYNAMIC
+cf-ray: a49ece680878781e-BNE
