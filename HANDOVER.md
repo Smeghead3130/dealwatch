@@ -6,7 +6,10 @@ Built for Mat on 14 October 2026. This adds the Google Keep wishlist to the exis
 - Repository: https://github.com/Smeghead3130/dealwatch
 - Desktop checkout: `/home/mjet/src/dealwatch`
 - Release/image: `v0.2.0` / `ghcr.io/smeghead3130/dealwatch:v0.2.0`
-- Image digest and publication verification: pending release workflow; finalized after publication.
+- Verified image digest: `sha256:d9c41c498fd0fe99d2f374fb7c8906d542e2bfa69da2d34e73a098f47ca7ad7a`.
+- Published by the green release workflow: https://github.com/Smeghead3130/dealwatch/actions/runs/38457583286
+- Anonymous pull with an empty Docker credential configuration succeeded. No registry login required.
+- Released source commit: `71071c7`; final publication evidence is in this follow-up handover.
 - Install file: `compose.truenas.yaml`, still `DRY_RUN=true`.
 - Existing mount: **`/mnt/Apps/dealwatch_config:/data`**. Do not create the old `/mnt/Apps/dealwatch/data` path.
 

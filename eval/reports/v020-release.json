@@ -1,0 +1,9 @@
+{
+  "image": "ghcr.io/smeghead3130/dealwatch:v0.2.0",
+  "digest": "sha256:d9c41c498fd0fe99d2f374fb7c8906d542e2bfa69da2d34e73a098f47ca7ad7a",
+  "workflow": "https://github.com/Smeghead3130/dealwatch/actions/runs/38457583286",
+  "workflow_conclusion": "success",
+  "anonymous_pull": true,
+  "published_image_imports": true,
+  "source_commit": "71071c79dd1fa6ef0ea62887cba3d4fb8d22b35a"
+}
