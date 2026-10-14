@@ -31,7 +31,7 @@ class CaseHistory:
 
 async def evaluate(client, config, path, split):
     cases = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
-    cases = [c for c in cases if split == "all" or c["split"] == split]
+    cases = [c for c in cases if split == "all" or c.get("split", "heldout") == split]
     outcomes = []
     for c in cases:
         deal = Deal(
@@ -41,14 +41,24 @@ async def evaluate(client, config, path, split):
             published=utcnow(),
             categories=c.get("categories", []),
             status=c.get("status"),
+            votes_pos=c.get("votes_pos", 0),
+            votes_neg=c.get("votes_neg", 0),
             deal_url=f"https://www.ozbargain.com.au/node/{c['id']}",
         )
         try:
-            _, decision = await judge(client, config, deal, CaseHistory(c.get("history", [])))
+            from .wishlist import parse_lines
+
+            _, decision = await judge(
+                client,
+                config,
+                deal,
+                CaseHistory(c.get("history", [])),
+                wishlist_items=parse_lines(c.get("wishlist", [])),
+            )
             item = {
                 "id": c["id"],
                 "expected": c["expected"],
-                "actual": decision.kind,
+                "actual": "error" if decision.wishlist_error else decision.kind,
                 "model": decision.model,
                 "latency_ms": decision.latency_ms,
                 "reason": decision.reason,
@@ -96,7 +106,13 @@ async def command(args, config):
                 await sync_once(db, config, force=True)
             print(json.dumps(db.wishlist_status(config), indent=2))
         elif args.cmd == "export":
-            rows = db.conn.execute("SELECT node,revision,json,ts FROM decisions ORDER BY ts")
+            since = getattr(args, "since", None)
+            if since is not None and since < 0:
+                raise ValueError("since must be nonnegative hours")
+            cutoff = (utcnow() - timedelta(hours=since)).isoformat() if since is not None else ""
+            rows = db.conn.execute(
+                "SELECT node,revision,json,ts FROM decisions WHERE ts>=? ORDER BY ts,id", (cutoff,)
+            )
             for row in rows:
                 print(json.dumps(dict(row)))
         else:
@@ -162,8 +178,11 @@ async def command(args, config):
 def main():
     parser = argparse.ArgumentParser(description="Dealwatch: Australian steal alerts")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name in ("run", "status", "export", "wishlist"):
+    for name in ("run", "status", "wishlist"):
         sub.add_parser(name)
+    p = sub.add_parser("export")
+    p.add_argument("--decisions", action="store_true", help="Export persisted decisions (default)")
+    p.add_argument("--since", type=float, help="Only decisions from the last N hours")
     p = sub.add_parser("test-notify")
     p.add_argument("--topic", default="dealwatch-codex-test")
     p = sub.add_parser("judge")

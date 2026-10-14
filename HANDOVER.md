@@ -1,99 +1,169 @@
-# Dealwatch v0.2.0 — handover to Claude
+# Dealwatch v0.3.0 — review handover
 
-Built for Mat on 14 October 2026. This adds the Google Keep wishlist to the existing steal-first app.
-**Build only: Codex has not deployed or changed the running TrueNAS app.**
+Prepared on 14 October 2026 for review on branch `v0.3.0`. **No release tag, image publication,
+NAS deployment, real ntfy message, or live model evaluation was performed.** Claude owns live
+checks, review, merge, tag and deployment.
 
-- Repository: https://github.com/Smeghead3130/dealwatch
-- Desktop checkout: `/home/mjet/src/dealwatch`
-- Release/image: `v0.2.0` / `ghcr.io/smeghead3130/dealwatch:v0.2.0`
-- Verified image digest: `sha256:d9c41c498fd0fe99d2f374fb7c8906d542e2bfa69da2d34e73a098f47ca7ad7a`.
-- Published by the green release workflow: https://github.com/Smeghead3130/dealwatch/actions/runs/38457583286
-- Anonymous pull with an empty Docker credential configuration succeeded. No registry login required.
-- Released source commit: `71071c7`; final publication evidence is in this follow-up handover.
-- Install file: `compose.truenas.yaml`, still `DRY_RUN=true`.
-- Existing mount: **`/mnt/Apps/dealwatch_config:/data`**. Do not create the old `/mnt/Apps/dealwatch/data` path.
+User-reported live state: v0.2.0 is deployed in DRY_RUN, Keep is syncing the note `Dealwatch`,
+and phone delivery is confirmed end to end. This cloud task has not independently checked
+that state. Preserve existing credentials, topic and `/mnt/Apps/dealwatch_config:/data` mount.
+The YAML now proposes the future v0.3.0 image and note title; that image does not exist yet.
 
 ## What changed
 
-Pinned `gkeepapi==0.17.1` and `gpsoauth==2.0.0`; Google calls run in a bounded child process in an
-independent sync task. Title selects the newest edited matching note; lists exclude checked items,
-text notes split into lines. Keep replaces file mode when either Keep credential is configured.
-Missing notes, bad credentials and outages retain the last-good SQLite list. Cached incremental
-Keep state is `/data/keep_state.json` (mode 600). Source identity includes account and note title,
-so changing those cannot silently use another account/note's saved list.
+- Persistent wishlist backfill for new/edited Keep item ID + normalized text. The first
+  successful sync after upgrade is a baseline: **no backfill of the existing list**. Text
+  notes and file mode use normalized-text identity. Re-adding identical text/ID is not new.
+- Cached schema interpretation as specific product or description. Description requirements
+  are shown by `wishlist`, checked with source quotes, and rendered with ✓/?/✗. Missing
+  evidence becomes unknown, contradiction rejects, subjective criteria say model judgement.
+  Specific products retain exact identity and target behavior. Accessory needs such as
+  X-mount lenses can qualify; a solar panel cannot stand in for a camping battery.
+- Description alerts need a fit plus a Python-checked value signal: 20% discount, 15 net votes
+  within six hours, or known landed price within target. Unknown-only partial fits use the
+  possible tier with the unknown requirements disclosed.
+- Backfill uses stored current-revision extractions, separate decision revisions, atomic
+  outbox reservations, three individual alerts plus one overflow summary per sync. Rank:
+  evidence class, measured saving when available, then effective price. Daily caps take
+  precedence; suppressed-by-cap matches are not queued for a future flood.
+- Old backfill deals bypass original age suppression, carry age/availability warnings,
+  and retain expiry/revision checks. Canonical node-page availability checks have a 10-second
+  timeout/512KB bound. Failure is disclosed. Delivery retries expire six hours after reservation.
+- Literal title prices now handle main prices followed by parenthesized was-prices and
+  alternative `$4/$5` prices (conservatively choose the higher upfront option). RRP, cashback,
+  foreign currency and ambiguous prices are not promoted into fabricated price evidence.
+  Identity quotes can use the actual title, preserving model/variant source-token checks.
+- Seller title was-prices at ≥25% off support **possible**, never evidence-backed, alerts.
+  Forty net votes within two hours are a labelled community signal. RRP alone still fails.
+  Vote signals use the vote counts available at judgement; ordinary vote-only feed updates
+  still do not re-extract/requeue existing decisions.
+- `export --decisions --since 24` reads durable SQLite decision history, including backfill
+  triggers. Existing retention is 30 days, so it is not an unlimited archive.
+- Schema 3 adds interpretation/backfill state and outbox metadata. No dependency changes.
 
-A warning is queued once after six continuous hours of failure; one recovery notice follows a
-warned outage. Short outages recover silently. Episode state survives restart. All notices respect
-DRY_RUN and the existing outbox; uncertain ntfy acceptance still has the usual at-least-once risk.
+New defaults: `BACKFILL_DAYS=7`, `BACKFILL_MAX_ALERTS=3`, `WISHLIST_DESC_MIN_DISCOUNT=0.20`,
+`WISHLIST_DESC_MIN_VOTES=15`, `WISHLIST_DAILY_LIMIT=5`, `ALERT_DAILY_LIMIT=5`. The global budget
+covers deal notifications and backfill summaries, not Keep service health notices. Dry-run
+reservations count. Zero backfill max disables backfill. Explicit live enabling is unchanged.
 
-Only a schema-checked `same_product` match applies wishlist rules. Wrong capacities, conditions,
-variants and accessories do not qualify. The default matched thresholds are 0.85 history / 0.85
-quoted. Existing ordinary thresholds remain 0.70 / 0.75. Targets are deterministic: `<=` includes
-equality, `under` is strict. Known landed cost must meet a target; unknown delivery cannot prove
-one. A target-constrained item above its target does not relax thresholds, but may still pass the
-ordinary steal rules. Target alerts say **Wishlist target hit**, priority 4 before quiet hours.
-Matched possible alerts still consume the existing possible quota. Wishlist details and reasons
-are in decisions and notification bodies. A failed matcher leaves the ordinary steal path available.
+## Offline evidence
 
-## Verification
+See `eval/reports/v030-offline.json` and `v030-replay.json`. Commands:
 
-- **83 offline pytest tests pass**, including the original 41; Ruff lint and formatting pass.
-- Keep list/text notes, checked items, latest-title selection, incremental cache/permissions,
-  corrupt-cache recovery, file precedence, target parsing, variants/accessories/injection,
-  relaxed ratios, target class, existing exclusions, quota and matcher-failure fallback pass.
-- Outage tests retain last-good items across restart, back off, and reserve exactly one warning
-  plus one recovery notice per warned episode; mocked delivery and DRY_RUN both pass.
-- Child-process cancellation/nonblocking polling and private token-file creation/no-echo pass.
-- **40/40 non-wishlist decision regressions match v0.1.0** on identical live-extracted facts.
-  Label accuracy is 39/40: case 15 omitted a quoted comparison in extraction, so both versions
-  missed that deal. No false-positive alerts. Existing extraction code/prompt is unchanged.
-- **14/14 live wishlist cases pass** for both match/no-match and final alert class on qwen3.5:9b.
-  This is a small synthetic acceptance set, not a real-world accuracy guarantee.
-- Docker Compose validation and local container/migration checks pass (details below).
+```sh
+.venv/bin/pytest -q
+.venv/bin/ruff check src tests scripts
+.venv/bin/ruff format --check src tests scripts
+.venv/bin/python scripts/evaluate_v030.py --output eval/reports/v030-offline.json
+.venv/bin/python scripts/replay_v030.py
+```
 
-Raw reports: `eval/reports/v020-*`; rerun instructions and limitations: `eval/README.md`.
+**131 offline tests pass**, including the original 83 unchanged. Ruff lint and formatting pass.
+The v0.3.0 Python wheel also built successfully (local artifact only).
+The actual service passed local RSS polling, schema-3 initialization, heartbeat, clean shutdown
+and restart/topic-persistence checks using a temporary data directory. New tests cover price parsing, source quote recovery,
+weak prices/votes, fit evidence, accessories, target boundaries, durable classification,
+baseline/edit detection, backfill cap/summary/dry-run, old/expired/already-alerted deals,
+interrupted work, restart deduplication, changed offers, quotas, export filtering and migration.
+The actual frozen v0.2.0 Store is used to create schema 2 and prove it refuses schema 3.
 
-The local Docker smoke test used a local mocked feed/Ollama/ntfy, UID/GID 568, read-only filesystem,
-1 CPU and 512 MiB. It recorded a wishlist target in dry-run, restarted without rejudging, kept its
-topic, passed liveness and sent zero notifications. A separate network-disabled container test
-created a real v0.1.0 database, migrated it with v0.2.0, preserved its topic and confirmed that
-v0.1.0 refuses schema 2 cleanly.
+- 18 authored description cases: 18/18 class labels, 7 alerts, no misses or false positives.
+  **These use mocked schema responses, not live model results or an accuracy estimate.**
+- 40 recorded v0.2.0 extractions: 17 alerts before/after, zero changed classes, precision
+  17/17, no false-positive examples; the existing miss is case 15 (missing quoted reference).
+  Exact label match remains 39/40. New fields and title normalization are not live inference.
 
-Live inference uses only gpu-guard `http://192.168.50.157:30069`, `qwen3.5:9b`, `think:false`.
-No model downloads, direct port 30068 calls, production notifications or NAS app changes were made.
-**Live Google Keep and the real token exchange are untested**: `~/.config/dealwatch-keep` was not
-present. Mocked tests cover the adapter/helper. Long-running Google sessions, NAS runtime/soak and
-actual phone receipt for new wishlist/service notices remain Claude's deployment checks.
+## Replay alerts for Mat
 
-## Claude: deployment sequence
+A **fresh 30-item public feed** was captured at 2026-10-14 05:29:43 UTC (15:29:43 Brisbane),
+HTTP 200, and saved as `tests/fixtures/ozb_feed_2026-10-14.xml` alongside the original. The
+four named node pages were also fetched; only their deal titles were parsed, not comments.
+Captured titles are in `tests/fixtures/ozb_nodes_2026-10-14.json`. The initial cloud 403 was
+resolved after adding the required network domains; fetch metadata/checksum are recorded.
 
-1. Help Mat create a dedicated Google account and share the existing Wishlist note with it.
-   Never use Mat's personal account: this master token grants account-level access, not a
-   note-only permission. The family keeps its existing Keep widget and note.
-2. On the desktop, run `.venv/bin/python scripts/keep_token.py` from the checkout. README has the
-   short private-browser cookie steps. The helper saves `KEEP_EMAIL` / `KEEP_MASTER_TOKEN` in
-   `~/.config/dealwatch-keep`, mode 600, without printing the token. Source/load the file privately;
-   do not paste its contents into chat. Do not put secrets into committed YAML.
-3. **Stop the app and snapshot Apps/dealwatch_config before opening schema 2**, including via CLI.
-   Then deploy the v0.2.0 image with the existing mount and UID/GID 568. Do not create duplicate
-   Ollama or ntfy services. Keep `DRY_RUN=true` initially.
-4. Preserve existing ntfy topic/auth. Publisher settings are in `~/.config/ntfy-nas`: use
-   `dealwatch_token` / `dealwatch_topic`, or `dealwatch_user` / `dealwatch_password`; ignore `mat_*`.
-   Keep `NTFY_URL=http://192.168.50.157:30184`. Public `https://ntfy.nethos.org` and Android delivery
-   already work per Mat/Claude. Router DNS sinkholing the public hostname is irrelevant to app LAN access.
-5. Insert `KEEP_EMAIL` / `KEEP_MASTER_TOKEN` privately; set `KEEP_NOTE_TITLE` if not Wishlist.
-   Defaults: `KEEP_SYNC_MINUTES=15`, `WISHLIST_HISTORY_RATIO=0.85`, `WISHLIST_QUOTED_RATIO=0.85`.
-   Partial credentials deliberately produce a sync error, not a fallback to the file.
-6. After first sync, run `python -m dealwatch wishlist` and `python -m dealwatch status` in the app
-   shell. Check source `keep`, items, `last_sync`, and `keep_sync_degraded=false`. Edit/check an item,
-   wait for sync and verify the cached list changes; Dealwatch never writes back. Restart once.
-7. Use `judge <node>` / `replay --hours 24` to inspect match reasons and dry-run decisions. Inspect
-   failed matches conservatively; do not enable alerts just because the image started. Review the
-   dry-run period before live alerts. Old dry-run reservations are not replayed when switching live.
+The 34-input replay uses those real captured titles with explicitly authored extraction
+responses, and an assumed publication time for the four standalone nodes (no vote signal
+is derived for them). It is a deterministic rule replay, not live inference or a complete
+reconstruction of the historical 130 decisions. Each input records its provenance.
 
-To disable Keep, clear **both** Keep fields and use `/data/wishlist.txt` (now using the same semantic
-matching/target rules). To roll back to v0.1.0, stop, restore the **pre-upgrade dataset snapshot**, pin
-v0.1.0 and restart. Old code refuses schema 2; changing only the image is insufficient. Snapshot
-restoration also rewinds post-upgrade delivery history, so consider that before enabling live alerts.
+| Node | Would alert | Reason and restrictions |
+| --- | --- | --- |
+| 978865 | Possible — Leisure Suit Larry: Wet Dreams Saga Bundle, A$4.87 | Seller claimed was-price A$97.45, unverified; Game Pass required; delivery unknown. Public title captured; extraction mocked. |
+| 978890 | Possible — Cadbury Jumbo Box 1.56kg, A$29 | Seller claimed was-price A$58 at BIG W, unverified; delivery unknown. Public title captured; extraction mocked. |
 
-Future token-heavy implementation should go back to Codex; tell Mat before undertaking it in Claude.
+978840 (Durex) now has a conservative A$5 upfront price, but RRP alone does not qualify;
+Prime/delivery restrictions remain. 978861 (coffee) parses A$30.65 but has no supported value
+signal in the supplied brief, so does not alert. The Mercedes A$65,490 arithmetic is preserved.
+
+Observed sample count: **2 alerts from 34 inputs on 14 October (Australia/Brisbane)**. Coverage is
+partial, selected and mocked; it cannot establish a real daily rate. The default cap is five
+across deal classes, matching the upper end of Mat's requested 1–5/day range without forcing
+low-quality alerts. Claude must measure a full live dry-run day before judging usefulness.
+
+## Claude's required checks before merge/release
+
+1. Review the committed fresh feed and four captured node titles. Repeat the capture locally
+   if offers have changed before review. `scripts/build_replay_v030.py --feed PATH
+   --captured-at ISO_TIMESTAMP` prepares explicitly mocked inputs; review them before
+   `scripts/replay_v030.py`. Mocked facts must not be relabelled as live model outputs.
+2. Run `.venv/bin/python scripts/evaluate_v030.py --live --output /tmp/v030-live.json` using
+   gpu-guard `http://192.168.50.157:30069`, qwen3.5:9b. Never use direct port 30068. The script
+   reports precision, misses and false-positive IDs. Alternatively `python -m dealwatch
+   evaluate --cases eval/wishlist_descriptions.jsonl --split all` runs these labelled cases.
+   Inspect model interpretations and source quotes, including ambiguous large capacity,
+   solar input, soft brand criteria, 3.5-inch drives and X-mount compatibility.
+3. Review real decisions with `export --decisions --since 24`; compare useful alert volume,
+   unknowns, misses and floods. In a scratch copy of the DB, verify baseline sync causes no
+   alerts, then add/edit one item, restart during backfill, and inspect individual/summary
+   dry-run reservations. Check a page marked OOS and blocked-page disclosure.
+4. Preserve Keep/ntfy secrets privately. The actual Keep note is `Dealwatch`. Check cached
+   interpretation via `wishlist`; interpretation failures are distinct from Keep sync failure.
+   A model outage can leave an interpretation pending until a later sync/judgement. Failed
+   backfill batches are visible in `status`; bounded retries do not run forever.
+5. Only after review/live checks: merge, tag and build/release using the existing workflow.
+   Then follow the snapshot/upgrade sequence below and a full day of DRY_RUN. No real
+   notification should be sent as a side effect of reviewing the offline replay.
+
+## Upgrade and rollback
+
+Stop the app and snapshot **Apps/dealwatch_config** before any v0.3.0 CLI or service opens
+SQLite. Opening migrates schema 2 to 3; preserve the whole dataset/WAL state, topic and
+notification history. Deploy with the existing mount, UID/GID 568, resource limits, gpu-guard
+and ntfy addresses. The first successful sync establishes the v0.3 baseline even if v0.2 had
+already synced; it deliberately does not replay the current list.
+
+To roll back, stop v0.3, restore the **pre-upgrade snapshot**, pin the v0.2.0 image and restart.
+v0.2.0 refuses schema 3 cleanly; swapping only the image is insufficient. Restoring a snapshot
+also rewinds delivery history, so account for any notifications sent after the snapshot.
+
+## Claude review, 14 October 2026 (live qwen3.5:9b via gpu-guard)
+
+Codex's 18/18 description result used mocked model answers. **Live, the first run produced 0/7 alerts**:
+the model labelled every wishlist item `specific_product` (even "Lenses for Fujifilm XT-5"), so no
+description matching ran. Claude fixed this on the branch:
+
+1. `Interpretation` field order is now requirements → accessory_need → kind, so the label is chosen
+   after the requirements. The classify prompt has a clearer rule, and its examples no longer
+   reuse Mat's real items (those made the eval circular).
+2. A description with only soft requirements gets its first requirement forced hard (otherwise
+   "chocolate" would fit every deal).
+3. Description matching skips the brand/model identity gate (`validate_facts(require_identity=False)`);
+   the quoted per-requirement fit check is the identity proof. Specific-product matches are still
+   re-gated with full identity checks in `decide()`.
+4. The fit call receives `wanted_is_accessory`, and the prompt lets accessory-type needs (lenses) match.
+5. A `not_met` row no longer needs a verbatim quote (downgrading it to unknown turned rejections into
+   possible alerts, e.g. an SSD matched the 3.5" HDD item). Only `met` needs a quote.
+6. An incomplete/duplicate fit result retries once before erroring.
+
+Live description eval after the fixes: **5 alerts, precision 5/5, 0 false positives**. Misses: 5
+(camping battery, solar unknown → expected possible) and 17 (lens, mount unknown → expected possible).
+Cases 1, 8 and 12 alert as `possible` rather than a full match, because the model paraphrases quotes and
+`supported()` downgrades those `met` rows to unknown. Cases 2 and 3 still raise after the retry (final
+decision `none`, which is correct). Recorded v0.2 regression: unchanged, 17/17 precision, 0 changed classes.
+134 offline tests pass.
+
+**Backlog for a later Codex pass:** quote-matching tolerance for `met` rows (normalise whitespace,
+punctuation and case; allow a short fuzzy match); the two remaining misses; the fit-row count errors on
+4-requirement items; `description_candidates()` hard-codes Mat's three current item families
+(overfit; prefer a general lexical/LLM prefilter); and more realistic eval cases (real OzB titles,
+not "@ Test Retailer" with $100 prices).

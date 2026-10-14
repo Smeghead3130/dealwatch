@@ -1,0 +1,1114 @@
+{
+  "description_cases": {
+    "mode": "authored mocked Ollama responses; NOT live-model accuracy",
+    "rows": [
+      {
+        "id": 1,
+        "label": "Portable camping power station; large capacity for camping, solar input.",
+        "expected": "wishlist_match",
+        "actual": "wishlist_match",
+        "decision": {
+          "kind": "wishlist_match",
+          "reason": "Wishlist match: 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/1"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 6,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "6b86bf843d063ea19c0a3a2a",
+                "text": "Camping Battery, good brand solar rechargeable",
+                "product": "Camping Battery, good brand solar rechargeable",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "portable camping battery/power station",
+                      "hard": true
+                    },
+                    {
+                      "text": "large capacity for camping",
+                      "hard": true
+                    },
+                    {
+                      "text": "solar input",
+                      "hard": true
+                    },
+                    {
+                      "text": "good brand",
+                      "hard": false
+                    }
+                  ],
+                  "accessory_need": false
+                }
+              },
+              "reason": "Requirement fit: fits",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Portable camping power station; large capacity for camping, solar input.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "met",
+                    "quote": "Portable camping power station; large capacity for camping, solar input.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 2,
+                    "status": "met",
+                    "quote": "Portable camping power station; large capacity for camping, solar input.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 3,
+                    "status": "met",
+                    "quote": "Portable camping power station; large capacity for camping, solar input.",
+                    "judgement": "Subjective assessment from mocked model"
+                  }
+                ],
+                "overall": "fits"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 2,
+        "label": "Portable camping power station; large capacity for camping, no solar input.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 3,
+        "label": "5000mAh tiny phone power bank, USB charging only.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 4,
+        "label": "Solar panel only; no battery included.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "Accessory excluded from v1 steal alerts",
+          "effective_price": null,
+          "observations": 0,
+          "sources": [],
+          "restrictions": [],
+          "model": "qwen3.5:9b",
+          "latency_ms": 3,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 5,
+        "label": "Portable camping battery; large capacity for camping. Input unspecified.",
+        "expected": "possible",
+        "actual": "possible",
+        "decision": {
+          "kind": "possible",
+          "reason": "Possible wishlist fit — unknown requirements; 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/5"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "6b86bf843d063ea19c0a3a2a",
+                "text": "Camping Battery, good brand solar rechargeable",
+                "product": "Camping Battery, good brand solar rechargeable",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "portable camping battery/power station",
+                      "hard": true
+                    },
+                    {
+                      "text": "large capacity for camping",
+                      "hard": true
+                    },
+                    {
+                      "text": "solar input",
+                      "hard": true
+                    },
+                    {
+                      "text": "good brand",
+                      "hard": false
+                    }
+                  ],
+                  "accessory_need": false
+                }
+              },
+              "reason": "Requirement fit: partial",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Portable camping battery; large capacity for camping. Input unspecified.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "met",
+                    "quote": "Portable camping battery; large capacity for camping. Input unspecified.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 2,
+                    "status": "unknown",
+                    "quote": "",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 3,
+                    "status": "unknown",
+                    "quote": "",
+                    "judgement": "Subjective assessment from mocked model"
+                  }
+                ],
+                "overall": "partial"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 6,
+        "label": "Portable camping power station; large capacity for camping with solar input.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 5,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 7,
+        "label": "Carrying case for a large capacity solar camping battery; no battery included.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "Accessory excluded from v1 steal alerts",
+          "effective_price": null,
+          "observations": 0,
+          "sources": [],
+          "restrictions": [],
+          "model": "qwen3.5:9b",
+          "latency_ms": 3,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 8,
+        "label": "Hard disk drive, 3.5 inch form factor.",
+        "expected": "wishlist_match",
+        "actual": "wishlist_match",
+        "decision": {
+          "kind": "wishlist_match",
+          "reason": "Wishlist match: 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/8"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "e2cdb432039e5695f9572985",
+                "text": "Well priced 3.5\" HDDs any type",
+                "product": "Well priced 3.5\" HDDs any type",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "hard disk drive",
+                      "hard": true
+                    },
+                    {
+                      "text": "3.5 inch",
+                      "hard": true
+                    },
+                    {
+                      "text": "well priced",
+                      "hard": false
+                    }
+                  ],
+                  "accessory_need": false
+                }
+              },
+              "reason": "Requirement fit: fits",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Hard disk drive, 3.5 inch form factor.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "met",
+                    "quote": "Hard disk drive, 3.5 inch form factor.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 2,
+                    "status": "met",
+                    "quote": "Hard disk drive, 3.5 inch form factor.",
+                    "judgement": "Subjective assessment from mocked model"
+                  }
+                ],
+                "overall": "fits"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 9,
+        "label": "Hard disk drive, 2.5 inch form factor.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 9,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 10,
+        "label": "Solid state drive, 2.5 inch form factor.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 11,
+        "label": "Hard disk drive; form factor not stated.",
+        "expected": "possible",
+        "actual": "possible",
+        "decision": {
+          "kind": "possible",
+          "reason": "Possible wishlist fit — unknown requirements; 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/11"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 7,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "e2cdb432039e5695f9572985",
+                "text": "Well priced 3.5\" HDDs any type",
+                "product": "Well priced 3.5\" HDDs any type",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "hard disk drive",
+                      "hard": true
+                    },
+                    {
+                      "text": "3.5 inch",
+                      "hard": true
+                    },
+                    {
+                      "text": "well priced",
+                      "hard": false
+                    }
+                  ],
+                  "accessory_need": false
+                }
+              },
+              "reason": "Requirement fit: partial",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Hard disk drive; form factor not stated.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "unknown",
+                    "quote": "",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 2,
+                    "status": "met",
+                    "quote": "Hard disk drive; form factor not stated.",
+                    "judgement": "Subjective assessment from mocked model"
+                  }
+                ],
+                "overall": "partial"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 12,
+        "label": "Hard disk drive, 3.5 inch form factor.",
+        "expected": "wishlist_match",
+        "actual": "wishlist_match",
+        "decision": {
+          "kind": "wishlist_match",
+          "reason": "Wishlist match: 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/12"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 7,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "e2cdb432039e5695f9572985",
+                "text": "Well priced 3.5\" HDDs any type",
+                "product": "Well priced 3.5\" HDDs any type",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "hard disk drive",
+                      "hard": true
+                    },
+                    {
+                      "text": "3.5 inch",
+                      "hard": true
+                    },
+                    {
+                      "text": "well priced",
+                      "hard": false
+                    }
+                  ],
+                  "accessory_need": false
+                }
+              },
+              "reason": "Requirement fit: fits",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Hard disk drive, 3.5 inch form factor.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "met",
+                    "quote": "Hard disk drive, 3.5 inch form factor.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 2,
+                    "status": "unknown",
+                    "quote": "",
+                    "judgement": "Subjective assessment from mocked model"
+                  }
+                ],
+                "overall": "fits"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 13,
+        "label": "Lens for Fujifilm X mount, compatible with X-T5.",
+        "expected": "wishlist_match",
+        "actual": "wishlist_match",
+        "decision": {
+          "kind": "wishlist_match",
+          "reason": "Wishlist match: 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/13"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 5,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "e8d6fc86a8bbe154d70843ea",
+                "text": "Lenses for Fujifilm XT-5",
+                "product": "Lenses for Fujifilm XT-5",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "lens",
+                      "hard": true
+                    },
+                    {
+                      "text": "Fujifilm X mount compatibility",
+                      "hard": true
+                    }
+                  ],
+                  "accessory_need": true
+                }
+              },
+              "reason": "Requirement fit: fits",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Lens for Fujifilm X mount, compatible with X-T5.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "met",
+                    "quote": "Lens for Fujifilm X mount, compatible with X-T5.",
+                    "judgement": ""
+                  }
+                ],
+                "overall": "fits"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 14,
+        "label": "Lens for Sony E mount only.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "Accessory excluded from v1 steal alerts",
+          "effective_price": null,
+          "observations": 0,
+          "sources": [],
+          "restrictions": [],
+          "model": "qwen3.5:9b",
+          "latency_ms": 8,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 15,
+        "label": "Camera body only, no lens.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 5,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 16,
+        "label": "Lens cap only for Fujifilm X mount lenses; no lens.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "Accessory excluded from v1 steal alerts",
+          "effective_price": null,
+          "observations": 0,
+          "sources": [],
+          "restrictions": [],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 17,
+        "label": "Camera lens; mount unspecified.",
+        "expected": "possible",
+        "actual": "possible",
+        "decision": {
+          "kind": "possible",
+          "reason": "Possible wishlist fit — unknown requirements; 15 net votes within 6 hours; community signal, not price evidence",
+          "effective_price": "100",
+          "observations": 0,
+          "sources": [
+            "https://www.ozbargain.com.au/node/17"
+          ],
+          "restrictions": [
+            "Delivery included: A$0.00"
+          ],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [
+            {
+              "item": {
+                "id": "e8d6fc86a8bbe154d70843ea",
+                "text": "Lenses for Fujifilm XT-5",
+                "product": "Lenses for Fujifilm XT-5",
+                "target": null,
+                "strict_target": false,
+                "interpretation": {
+                  "kind": "need_description",
+                  "requirements": [
+                    {
+                      "text": "lens",
+                      "hard": true
+                    },
+                    {
+                      "text": "Fujifilm X mount compatibility",
+                      "hard": true
+                    }
+                  ],
+                  "accessory_need": true
+                }
+              },
+              "reason": "Requirement fit: partial",
+              "fit": {
+                "requirements": [
+                  {
+                    "index": 0,
+                    "status": "met",
+                    "quote": "Camera lens; mount unspecified.",
+                    "judgement": ""
+                  },
+                  {
+                    "index": 1,
+                    "status": "unknown",
+                    "quote": "",
+                    "judgement": ""
+                  }
+                ],
+                "overall": "partial"
+              }
+            }
+          ],
+          "wishlist_error": null,
+          "wishlist_applied": true,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      },
+      {
+        "id": 18,
+        "label": "Lens for Fujifilm X mount, compatible with X-T5.",
+        "expected": "none",
+        "actual": "none",
+        "decision": {
+          "kind": "none",
+          "reason": "Accessory excluded from v1 steal alerts",
+          "effective_price": null,
+          "observations": 0,
+          "sources": [],
+          "restrictions": [],
+          "model": "qwen3.5:9b",
+          "latency_ms": 4,
+          "wishlist_matches": [],
+          "wishlist_error": null,
+          "wishlist_applied": false,
+          "trigger": "feed",
+          "availability": null,
+          "value_score": "0"
+        }
+      }
+    ],
+    "summary": {
+      "cases": 18,
+      "alerts": 7,
+      "precision": 1.0,
+      "misses": [],
+      "false_positive_examples": [],
+      "errors": [],
+      "class_matches": 18
+    }
+  },
+  "recorded_regression": {
+    "mode": "recorded v0.2 extractions replayed offline",
+    "rows": [
+      {
+        "id": 1,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "55.6% below A$450.00 median of 3 comparable observed OzBargain prices; historical, not current market"
+      },
+      {
+        "id": 2,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "47.5% below A$400.00 at Dell as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 3,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: Pricing Error"
+      },
+      {
+        "id": 4,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: Clearance"
+      },
+      {
+        "id": 5,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 6,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 7,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Missing upfront AUD price"
+      },
+      {
+        "id": 8,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Missing upfront AUD price"
+      },
+      {
+        "id": 9,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Excluded category"
+      },
+      {
+        "id": 10,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "41.7% below A$1200.00 at JB Hi-Fi as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 11,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "48.6% below A$350.00 at ServerPartDeals as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 12,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "37.5% below A$2400.00 at DWI as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 13,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Product identity lacks source evidence"
+      },
+      {
+        "id": 14,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: Clearance"
+      },
+      {
+        "id": 15,
+        "expected": "evidence",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 16,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 17,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "54.5% below A$2200.00 at JB Hi-Fi as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 18,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 19,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 20,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 21,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 22,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "30.0% below A$300.00 median of 3 comparable observed OzBargain prices; historical, not current market"
+      },
+      {
+        "id": 23,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 24,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "25.0% below A$300.00 at Target as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 25,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 26,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: FREE + $5 Delivery"
+      },
+      {
+        "id": 27,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Delivery amount lacks source evidence"
+      },
+      {
+        "id": 28,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Excluded category"
+      },
+      {
+        "id": 29,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "expired"
+      },
+      {
+        "id": 30,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "upcoming without start time"
+      },
+      {
+        "id": 31,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "54.9% below A$399.00 at JB Hi-Fi as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 32,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "47.6% below A$420.00 median of 3 comparable observed OzBargain prices; historical, not current market"
+      },
+      {
+        "id": 33,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: Clearance"
+      },
+      {
+        "id": 34,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Missing upfront AUD price"
+      },
+      {
+        "id": 35,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "Accessory excluded from v1 steal alerts"
+      },
+      {
+        "id": 36,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 37,
+        "expected": "evidence",
+        "previous": "evidence",
+        "actual": "evidence",
+        "reason": "55.0% below A$200.00 at Bunnings as quoted by the post (not independently checked); 1 quoted comparison"
+      },
+      {
+        "id": 38,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 39,
+        "expected": "none",
+        "previous": "none",
+        "actual": "none",
+        "reason": "No qualifying comparable evidence or explicit exceptional-value signal"
+      },
+      {
+        "id": 40,
+        "expected": "possible",
+        "previous": "possible",
+        "actual": "possible",
+        "reason": "Possible — unverified: Price Error"
+      }
+    ],
+    "summary": {
+      "cases": 40,
+      "alerts": 17,
+      "precision": 1.0,
+      "misses": [
+        15
+      ],
+      "false_positive_examples": [],
+      "errors": [],
+      "class_matches": 39,
+      "previous_alerts": 17,
+      "changed_classes": []
+    }
+  }
+}

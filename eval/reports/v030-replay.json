@@ -1,0 +1,373 @@
+{
+  "mode": "offline mocked replay of fresh feed and four captured public node titles; NOT live-model results",
+  "rows": [
+    {
+      "node": 978949,
+      "title": "Free Shipping with No Min Spend @ Booktopia",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978948,
+      "title": "iHerb: 20% Cashback (Uncapped) @ TopCashback AU",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978945,
+      "title": "Husqvarna Automower 405X $1,349.50 Delivered @ Husqvarna",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "1349.50",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978944,
+      "title": "[VIC, NSW, QLD, SA] $20 Electricity Credit in Dec for $10 @ Powershop",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978943,
+      "title": "[VIC] Free Brekkie Burritos & Bowls @ Guzman Y Gomez (Selected Melbourne CBD Locations)",
+      "actual": "none",
+      "reason": "upcoming",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978942,
+      "title": "Pool Set Titan 300 Cordless Robotic Pool Cleaner $499 @ ALDI",
+      "actual": "none",
+      "reason": "upcoming",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978940,
+      "title": "First 100 in-Store Customers Get a Free Large Pepperoni Pizza @ Pizza Hut (Participating Restaurants Only)",
+      "actual": "none",
+      "reason": "upcoming",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978938,
+      "title": "3% off Body Jewellery on Orders over $50 + Delivery from $7.50 @ Out of Body Jewellery",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978936,
+      "title": "dreame Hair Gleam Hair Dryer $67.94 (RRP $169) Delivered @ Dreame via Amazon AU",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "67.94",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978935,
+      "title": "Tabasco Original Red Pepper Sauce 1.89L $74.89 ($67.40 S&S, RRP $84) Delivered @ Amazon AU",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "74.89",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978932,
+      "title": "Dyson V10 Cyclone Vacuum $419 Delivered @ Amazon AU / Bunnings ($0 OnePass Delivery/C&C)",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "419",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978931,
+      "title": "Free Genki Forest Sugar Free Sparkling Water White Peach or Lychee Fizzy 4 Pk at Coles @ Flybuys (Activation Required)",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978929,
+      "title": "[VIC, NSW, SA, QLD, ACT] Smart Toilets ($79 MEL Del Only): Flex $999, Zenith $1450 / Essence Bidet $390 + Metro Del @ Oshonic",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978928,
+      "title": "Hoka Clifton 10 Road Running Shoes $140 (RRP $279.99) Delivered @ Wild Earth",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "140",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978925,
+      "title": "AmEx Statement Credit: Spend $200 or More at Woolworths (Online or App) in 1 Transaction, Get 3% Back ($50 Cap) @ AmEx",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "200",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978924,
+      "title": "Free NordVPN Standard with Eligible Flip Internet Plans (New & Existing Customers) @ Flip",
+      "actual": "none",
+      "reason": "Excluded category",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978922,
+      "title": "White King in-Cistern Power Clean Bleach & Blue 2x50g Block $3.60 ($3.24 S&S) + Del ($0 Prime/ $59 Spend) @ Amazon AU (Excl. NT)",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "3.60",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978920,
+      "title": "55% OFF Men's New Balance 460s Wide Fit Now $49.99 (RRP $109.99) + $9.99 Shipping ($0 WA C&C) @ Jim Kidd Sports",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "49.99",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978919,
+      "title": "½ Price Tegel Crunchy Chicken Burgers 550g $6.50 @ Coles",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "6.50",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978918,
+      "title": "Lowepro Tahoe CS 20 Compact Camera Case $16 (RRP $49.95) + Delivery ($0 Prime/$59 Spend) @ Amazon AU",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "16",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978917,
+      "title": "25-50% Selected Bowden's Own Car Care + $12 Delivery ($0 C&C/In-Store) @ Repco",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "12",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978912,
+      "title": "DJI Osmo Action 5 Pro Standard Combo $377 (RRP $629) Delivered @ Mobileciti",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "377",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978910,
+      "title": "Kings Escape 40 Portable 12V Camping Fridge Bundle $224.40 + Delivery ($0 C&C) @ 4WD Supa Centre",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "224.40",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978909,
+      "title": "KitchenAid Cordless Go Series Appliances with Battery $139 Each @ ALDI",
+      "actual": "none",
+      "reason": "upcoming",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978905,
+      "title": "DJI Action 4 Standard Combo $267.99 Delivered @ Mobileciti via Everyday Market",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "267.99",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978903,
+      "title": "Apple iPhone 17 Pro Max 256GB $1,879 + Delivery ($0 to Metro/ OnePass/ C&C/ in-Store) @ Officeworks",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "1879",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978901,
+      "title": "Shapes Multipacks (2x 8pk) $5, San Remo Risoni 500g $2.30, Praise Mayo 230g $2.25 + More (10% off with S&S) + Del @ Amazon AU",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978900,
+      "title": "20% off Hyklite Titanium Pots, Cups, Pans, and Cutlery + $10 Delivery ($0 Orders $100+ / VIC C&C) @ Hiking Food Australia",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "10",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978899,
+      "title": "[PC, Steam] Planet Zoo 2: Standard A$32.76, Deluxe Edition A$42.73 @ AllYouPlay",
+      "actual": "none",
+      "reason": "Missing upfront AUD price",
+      "effective_price": "None",
+      "restrictions": [],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978896,
+      "title": "Butler Crest Margaret River Cabernet Sauvignon 2023 12-Bottles $198.96 (39% off RRP) Delivered @ Vinate",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "198.96",
+      "restrictions": [
+        "Delivery included: A$0.00"
+      ],
+      "provenance": "captured public feed; deliberately minimal mocked extraction, not live inference"
+    },
+    {
+      "node": 978840,
+      "title": "Durex Invisible Reg/Wide Fit Condoms Pack of 10 $4/$5 ($3.60/$4.50 S&S, RRP $11.50) + Delivery ($0 Prime/$59 Spend) @ Amazon AU",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "5",
+      "restrictions": [
+        "Membership: Prime required for free delivery; non-subscription price used",
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "fresh public node title; authored extraction and publication time, not live-model output"
+    },
+    {
+      "node": 978861,
+      "title": "Save 50% 1kg SO $30.65 Brazil or Peru, Decaf $35 + Delivery ($0 w/ $99 Order, C&C, Opt Delayed Dis Opt) @ Lime Blue Coffee",
+      "actual": "none",
+      "reason": "No qualifying comparable evidence or explicit exceptional-value signal",
+      "effective_price": "30.65",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "fresh public node title; authored extraction and publication time, not live-model output"
+    },
+    {
+      "node": 978865,
+      "title": "[XB1, XSX] Leisure Suit Larry - Wet Dreams Saga Bundle $4.87 (Was $97.45) Game Pass Req'd @ Xbox Store",
+      "actual": "possible",
+      "reason": "Possible — seller's claimed was-price, unverified: A$97.45",
+      "effective_price": "4.87",
+      "restrictions": [
+        "Membership: Game Pass required",
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "fresh public node title; authored extraction and publication time, not live-model output"
+    },
+    {
+      "node": 978890,
+      "title": "Cadbury Variety Jumbo Chocolate Box 110 Pieces 1.56kg $29 (Was $58) + Delivery ($0 C&C/ in-Store) @ BIG W",
+      "actual": "possible",
+      "reason": "Possible — seller's claimed was-price, unverified: A$58.00",
+      "effective_price": "29",
+      "restrictions": [
+        "Delivery unknown; price excludes delivery"
+      ],
+      "provenance": "fresh public node title; authored extraction and publication time, not live-model output"
+    }
+  ],
+  "summary": {
+    "cases": 34,
+    "alerts": [
+      {
+        "node": 978865,
+        "kind": "possible"
+      },
+      {
+        "node": 978890,
+        "kind": "possible"
+      }
+    ],
+    "notifications_per_sampled_local_day": {
+      "2026-10-14": 2
+    },
+    "full_day_coverage": false,
+    "rate_limitation": "A 30-item feed snapshot and four selected examples cannot estimate a real daily rate. Default global cap is 5; no minimum is forced."
+  }
+}

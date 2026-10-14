@@ -37,3 +37,31 @@ The 40-case run matched the v0.1.0 decision engine in all 40 cases; label-class 
 versions consequently returned no alert. There were no false-positive alerts in that run.
 The 10 previously held-out cases matched their classes 10/10; the test is no longer fresh holdout
 validation after repeated evaluation. The wishlist run passed 14/14 match labels and final alert classes, with no errors.
+
+## v0.3.0 descriptions and replay
+
+`wishlist_descriptions.jsonl` adds 18 labelled synthetic cases using Mat's three real need
+phrases. Embedded `mock_*` fields are authored fixtures, **not recorded model results**.
+`scripts/evaluate_v030.py` defaults to mocked HTTP responses and also runs the 40-case saved
+extraction regression. `--live` sends only source text and wishlist data to Ollama; labels,
+mocked extractions and expected fit results are never sent. It never sends notifications.
+The ordinary `dealwatch evaluate --cases eval/wishlist_descriptions.jsonl --split all` also
+supports wishlist/vote fields. Reports distinguish live inference from mocked rules checks.
+
+`v030-offline.json`: 18/18 mocked classes, 7 alerts, zero false positives/misses. Recorded
+regression: 17 alerts before/after, precision 1.0, existing miss 15, 39/40 classes. These do not
+establish live-model accuracy. All old eval cases are previously seen acceptance fixtures.
+
+`scripts/build_replay_v030.py` builds explicit mocked replay inputs from the fresh captured public
+feed plus four captured node titles. Use `--feed PATH --captured-at ISO_TIMESTAMP` for a new
+capture. It reuses prior recorded extractions only where node and title match; review all
+facts if the underlying offer has changed. `scripts/replay_v030.py` applies current rules and
+outbox caps in a temporary database. The report states provenance and coverage limitations.
+
+The initial cloud HTTP 403 was resolved after the required domain additions. A fresh 30-item
+feed was captured on 14 October at 05:29:43 UTC, HTTP 200, along with the four named node-page
+titles. Captures and fetch metadata/checksum are under `tests/fixtures`. No comment text was
+parsed. The 34-input mocked replay yields possible alerts for 978865 and 978890, no other
+alerts: 2 on the sampled Brisbane date. Node publication times and extraction responses are
+authored inputs, not recorded inference. This partial snapshot does not establish daily
+production rate. Claude must still perform live inference checks before merge.

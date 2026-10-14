@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Literal
@@ -29,7 +30,11 @@ class Deal(BaseModel):
 
     def unavailable(self, now=None):
         now = now or utcnow()
-        if self.status == "expired" or (self.expiry and self.expiry <= now):
+        if (
+            self.status in {"expired", "out-of-stock", "outofstock"}
+            or (self.expiry and self.expiry <= now)
+            or re.search(r"^\s*\[(?:expired|out of stock|oos)\]", self.title, re.I)
+        ):
             return "expired"
         if self.starting and self.starting > now:
             return "upcoming"
@@ -75,21 +80,48 @@ class Extraction(StrictModel):
     signal_quote: str = ""
 
 
+class Requirement(StrictModel):
+    text: str = Field(min_length=1, max_length=240)
+    hard: bool = True
+
+
+class Interpretation(StrictModel):
+    # Field order matters for schema-constrained generation: requirements are written before
+    # the label, otherwise small models anchor on the first enum value (seen live on qwen3.5:9b).
+    requirements: list[Requirement] = Field(default_factory=list, max_length=12)
+    accessory_need: bool = False
+    kind: Literal["need_description", "specific_product"]
+
+
+class RequirementFit(StrictModel):
+    index: int = Field(ge=0)
+    status: Literal["met", "not_met", "unknown"]
+    quote: str = Field(default="", max_length=600)
+    judgement: str = Field(default="", max_length=240)
+
+
+class FitResult(StrictModel):
+    requirements: list[RequirementFit] = Field(max_length=12)
+    overall: Literal["fits", "partial", "no"]
+
+
 class WishlistItem(BaseModel):
     id: str
     text: str
     product: str
     target: Decimal | None = None
     strict_target: bool = False
+    interpretation: Interpretation | None = None
 
 
 class WishlistMatch(BaseModel):
     item: WishlistItem
     reason: str
+    fit: FitResult | None = None
 
 
 class Decision(BaseModel):
-    kind: Literal["none", "possible", "evidence", "wishlist_target"]
+    kind: Literal["none", "possible", "evidence", "wishlist_target", "wishlist_match"]
     reason: str
     effective_price: Decimal | None = None
     observations: int = 0
@@ -100,3 +132,6 @@ class Decision(BaseModel):
     wishlist_matches: list[WishlistMatch] = Field(default_factory=list)
     wishlist_error: str | None = None
     wishlist_applied: bool = False
+    trigger: str = "feed"
+    availability: str | None = None
+    value_score: Decimal = Decimal(0)

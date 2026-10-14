@@ -6,7 +6,7 @@ scrape comments, perform web searches or require a wishlist.
 
 ## Deployment boundary
 
-The build produces `ghcr.io/smeghead3130/dealwatch:v0.2.0` through GitHub Actions. See
+This branch prepares v0.3.0; no release tag or image has been published for it. See
 `HANDOVER.md` for the actual release/test status and live verification and deployment steps.
 NAS deployment is intentionally left to Claude. Do not assume that a successful image build
 means the application has been tested on the NAS or that a phone received a notification.
@@ -30,8 +30,10 @@ model, variant, condition, quantity, bundle, import status and price/eligibility
   or free-item-with-small-delivery signal, capped at five per local calendar day. A claim of
   clearance is a weak signal: this tier intentionally accepts some noise and can be disabled
   by setting `POSSIBLE_DAILY_LIMIT=0`.
-- RRP alone and votes alone never trigger alerts. Wishlist rules are described below. Deposits, subscriptions,
-  excluded categories and accessory listings are rejected. Cashback is not subtracted.
+- Seller title was-prices can support a possible alert at 25% off, labelled as the seller's
+  claimed was-price, unverified. RRP alone never qualifies. At least 40 net votes within
+  two hours can support a possible alert labelled as a community signal. Wishlist rules are described below. Deposits, subscriptions,
+  excluded categories and accessory listings are rejected, except when a description wishlist explicitly asks for that accessory. Cashback is not subtracted.
 
 Price is the explicitly advertised upfront price after a stated coupon, plus stated shipping.
 Unknown shipping is disclosed and comparisons must use compatible price bases. Missing facts
@@ -125,6 +127,12 @@ variables and are not printed by status or logs.
 | KEEP_SYNC_MINUTES | `15` | Independent sync interval; retries back off to one hour |
 | WISHLIST_HISTORY_RATIO | `0.85` | Matched-item local-history ratio |
 | WISHLIST_QUOTED_RATIO | `0.85` | Matched-item quoted-comparison ratio |
+| BACKFILL_DAYS | `7` | Candidate first-seen lookback; max 30 days |
+| BACKFILL_MAX_ALERTS | `3` | Individual alerts per wishlist sync, plus one overflow summary; 0 disables backfill |
+| WISHLIST_DESC_MIN_DISCOUNT | `0.20` | Minimum fractional discount for description matches |
+| WISHLIST_DESC_MIN_VOTES | `15` | Minimum net votes within 6 hours for description matches |
+| WISHLIST_DAILY_LIMIT | `5` | All wishlist notifications including summaries, per local day |
+| ALERT_DAILY_LIMIT | `5` | Total deal notifications across classes including backfill summaries; Keep service notices excluded |
 | MIN_OBSERVATIONS | `3` | Minimum distinct earlier nodes; cannot be below 3 |
 | HISTORY_DAYS | `180` | Comparison window, at most available retained history |
 | POSSIBLE_DAILY_LIMIT | `5` | Per local calendar day; 0 disables possible alerts |
@@ -161,7 +169,7 @@ Examples: `Sony WH-1000XM6`, `Sony WH-1000XM6 <= 350`, `Samsung T7 2TB under $17
 Targets are parsed in Python. `<=` includes equality; literal `under` is strict. Malformed price
 suffixes have no target. Explicit model, capacity and condition requirements must be met.
 Normalized product tokens select candidates, then a separate JSON-schema Ollama call checks
-identity. Only `same_product` qualifies; uncertain variants and accessories do not. Match reasons
+identity. For specific-product items, only `same_product` qualifies; uncertain variants and accessories do not. Match reasons
 are stored in decisions. Instruction-like wishlist entries are skipped before matching.
 
 A verified match permits the 85% historical/quoted ratios above. A target item also requires
@@ -171,6 +179,45 @@ it is not a steal claim. Above-target items can still qualify under the ordinary
 Membership/coupons/condition remain disclosed, cashback is never subtracted, and all existing
 expiry, stale, category, evidence and possible-alert limits remain in force. Quiet hours still
 reduce delivery priority. Wishlist membership alone cannot trigger a possible alert.
+
+Description items need no special syntax: `Camping Battery, good brand solar rechargeable`,
+`Well priced 3.5" HDDs any type`, and `Lenses for Fujifilm XT-5` are supported needs. A schema
+call classifies each item; its interpretation is cached in SQLite by item ID plus normalized
+text and shown by `wishlist`. Edits invalidate the cache. Hard requirement checks require
+source quotes; unsupported claims become unknown. Every hard requirement must be met for
+`Wishlist match`; any contradiction rejects the match. Unknown hard requirements can support
+only a possible alert, listing the unknowns. Accessories qualify only if the need itself is
+an accessory. Soft criteria are explicitly labelled as model judgement in notifications.
+
+A description match additionally needs 20% off comparable history, a named quoted comparison,
+or a seller title was-price (unverified), or 15 net votes within six hours, or a known landed
+price meeting the target. Arithmetic is in Python. Literal target suffixes include `under $350`,
+`up to $350`, `at most $350`, `budget $350`, and `<= 350`; `under` is strict. No price target
+is inferred from “well priced”. Description interpretation/fit still requires live model
+validation; source-quote checks cannot prove the model understood a requirement correctly.
+
+After the first successful v0.3 sync establishes a **baseline**, new or edited items trigger a
+persistent backfill batch against stored, available deals first seen within seven days. The
+first sync after an upgrade is always baseline, even with an existing v0.2 wishlist; it sends
+no retrospective alerts. Keep checklist identity combines the Keep item ID with normalized
+text; file/text-note items use normalized text. Removing and re-adding the same identity/text
+does not repeat backfill. Baseline tracking and completed work survive restart.
+
+Backfill reuses the extraction for the current offer revision, extracting only if absent.
+It stores a separate decision revision with `trigger: wishlist_backfill`. Before selecting
+an alert it makes a bounded GET of the canonical OzBargain node page; expired/OOS status in
+page title/deal status skips it. Failed/blocked checks are disclosed, not treated as proof of
+availability. Older alerts say “Posted N days ago — may have ended”. The original six-hour
+age gate does not suppress backfill, but expiry/offer-revision checks and a six-hour delivery
+retry window still apply. Ranking is evidence class first, measured saving when available,
+then lower effective price; at most three individual alerts plus one per-sync overflow
+summary are reserved atomically. Summary members are deduplicated. Summaries are suppressed
+if a member becomes unavailable or changes before delivery. Daily caps take precedence;
+there is no deferred flood when a cap resets. `status` shows pending/failed backfill batches.
+
+All deal classes share the five-notification daily budget; wishlist and possible caps also
+apply. DRY_RUN reservations count. This caps floods but does not force a minimum daily rate.
+Keep outage/recovery notices remain separate operational messages.
 
 The sync task runs independently of judging/polling. Synchronous Google I/O runs in a child
 process with a 120-second limit. Incremental state is cached privately in `/data/keep_state.json`;
@@ -203,14 +250,14 @@ python -m dealwatch wishlist
 python -m dealwatch judge 978852 --refresh
 python -m dealwatch replay --hours 24
 python -m dealwatch evaluate --split heldout
-python -m dealwatch export
+python -m dealwatch export --decisions --since 24
 python -m dealwatch test-notify --topic dealwatch-codex-test
 ```
 
 For development set `DATA_DIR` to a scratch directory. `judge` inspects a node in the local
 database/current feed; it never notifies. `replay` rejudges collected deals without changing
 decisions, observations or delivery state. `evaluate` runs the synthetic labelled dataset live
-against Ollama and reports precision and misses. `export` emits retained decisions as JSONL.
+against Ollama and reports precision and misses. `export --decisions --since 24` emits persisted decisions from the last 24 hours as JSONL, including backfill triggers; plain `export` retains the all-history behavior.
 Live commands require explicit access to the configured endpoints; ordinary `pytest` is offline.
 
 ## Persistence, recovery and monitoring
@@ -245,9 +292,9 @@ Stop the app and copy the entire `/data` directory, including SQLite WAL/SHM fil
 or take a consistent ZFS snapshot of the dataset. Never copy only a live `.db` while ignoring
 its WAL. Model data and ntfy storage are managed by their existing apps.
 
-v0.2.0 migrates SQLite schema 1 to 2 on first open (including CLI commands). Before upgrading,
-stop the app and snapshot **Apps/dealwatch_config**. To roll back to v0.1.0, stop the app,
-restore that pre-upgrade snapshot, then pin the v0.1.0 image and start it. Startup refuses to
+v0.3.0 migrates SQLite schema 1/2 to 3 on first open (including CLI commands). Before upgrading,
+stop the app and snapshot **Apps/dealwatch_config**. To roll back to v0.2.0, stop the app,
+restore that pre-upgrade snapshot, then pin the v0.2.0 image and start it. Startup refuses to
 open a database with a schema newer than the application supports. If schema compatibility
 blocks rollback, restore the matching pre-upgrade snapshot first. Preserve the production topic
 and send history to avoid resubscription and routine duplicate alerts.

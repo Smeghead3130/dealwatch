@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 import httpx
 
+from .backfill import backfill_once
 from .evidence import LocalHistory, identity
 from .feed import poll_once, retry_delay
 from .judge import judge
@@ -37,7 +38,7 @@ async def judge_once(client, db, config, now=None):
             items = await current_items(db, config)
             ex, decision = await judge(client, config, deal, LocalHistory(db), now, items)
         message = payload(deal, ex, decision, config) if ex and decision.kind != "none" else None
-        valid = ex and validate_facts(deal, ex) is None
+        valid = ex and validate_facts(deal, ex, allow_accessory=True) is None
         stored_decision = db.complete(
             job,
             deal,
@@ -129,9 +130,17 @@ async def run(db, config):
 
         async def wishlist_sync():
             while not stop.is_set():
-                await wait(await sync_once(db, config))
+                await wait(await sync_once(db, config, client=client))
 
-        tasks = [asyncio.create_task(f()) for f in (poller, judging, notifying, maintenance, wishlist_sync)]
+        async def backfilling():
+            while not stop.is_set():
+                await backfill_once(client, db, config)
+                await wait(1)
+
+        tasks = [
+            asyncio.create_task(f())
+            for f in (poller, judging, notifying, maintenance, wishlist_sync, backfilling)
+        ]
         stopped = asyncio.create_task(stop.wait())
         try:
             done, _ = await asyncio.wait([*tasks, stopped], return_when=asyncio.FIRST_COMPLETED)
