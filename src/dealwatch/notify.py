@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime, timedelta
+from decimal import Decimal
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -31,25 +32,49 @@ def safe_url(value):
         return None
 
 
-def payload(deal, ex, decision, config):
-    title = " ".join(filter(None, [ex.brand, ex.model, ex.variant]))
-    parts = [
-        decision.kind + ("-backed steal" if decision.kind == "evidence" else " — unverified"),
-        decision.reason,
-    ]
-    parts.extend(decision.restrictions)
-    parts.extend(decision.sources[:3])
+WEAK_EVIDENCE = ("unverified", "community signal", "possible")
+
+
+def product_name(ex):
+    """Brand, model and variant without the repeats extraction sometimes produces."""
+    parts = []
+    for part in (ex.brand, ex.model, ex.variant):
+        part = (part or "").strip()
+        if part and not any(part.lower() in kept.lower() for kept in parts):
+            parts = [kept for kept in parts if kept.lower() not in part.lower()] + [part]
+    return " ".join(parts)
+
+
+def tier(ex, decision):
+    """Mat's three alert labels, from deterministic decision facts only (no model judgement)."""
+    weak = decision.kind == "possible" or any(w in decision.reason.lower() for w in WEAK_EVIDENCE)
+    score = decision.value_score or Decimal(0)
+    if ex.signal == "price_error" or score >= 70:
+        return "Likely price error", "🚨", 5, "rotating_light"
+    if decision.kind == "evidence" or (score >= 40 and not weak):
+        return "Good deal", "🔥", 4, "fire"
     if decision.kind == "wishlist_target":
-        title = "Wishlist target hit: " + title
-        parts[0] = "Wishlist target hit"
-    elif decision.kind == "wishlist_match":
-        title = "Wishlist match: " + title
-        parts[0] = "Wishlist match"
-    elif decision.kind == "evidence" and decision.wishlist_applied:
-        title = "Wishlist deal: " + title
-        parts[0] = "Wishlist deal — supported comparison"
+        return "Wishlist target hit", "🎯", 4, "dart"
+    if decision.kind == "wishlist_match":
+        return "Wishlist sale", "🛒", 3, "shopping_cart"
+    return "Good deal", "🔥", 3, "fire"
+
+
+def payload(deal, ex, decision, config):
+    label, emoji, priority, tag = tier(ex, decision)
+    name = product_name(ex)
+    saving = (
+        f" ({decision.value_score:.0f}% off)" if decision.value_score and decision.value_score > 0 else ""
+    )
+    reason = decision.reason.removeprefix("Wishlist match: ").removeprefix("Possible — ")
+    parts = ["Unverified — check before buying."] if decision.kind == "possible" else []
+    parts.append("Why: " + reason)
+    if decision.restrictions:
+        parts.append("Watch out: " + "; ".join(decision.restrictions))
+    wishlist = [m.item.text for m in decision.wishlist_matches]
+    if wishlist:
+        parts.append("On your wishlist: " + ", ".join(wishlist))
     for match in decision.wishlist_matches:
-        parts.append("Wishlist: " + match.item.text + " — " + match.reason)
         if match.fit:
             for result, requirement in zip(
                 match.fit.requirements, match.item.interpretation.requirements, strict=True
@@ -57,11 +82,12 @@ def payload(deal, ex, decision, config):
                 marker = {"met": "✓", "unknown": "?", "not_met": "✗"}[result.status]
                 detail = result.quote if requirement.hard else result.judgement + " — model's judgement"
                 parts.append(f"{marker} {requirement.text}: {detail or 'unknown'}")
+    parts.extend(decision.sources[:3])
     result = {
-        "title": f"{title} — A${decision.effective_price:.2f}"[:220],
+        "title": f"{emoji} {label}: {name} — A${decision.effective_price:.2f}{saving}"[:220],
         "message": "\n".join(parts)[:3900],
-        "priority": 4 if decision.kind in ("evidence", "wishlist_target") else 3,
-        "tags": ["shopping_cart"],
+        "priority": priority,
+        "tags": [tag] + (["star"] if wishlist and label != "Wishlist sale" else []),
     }
     if url := safe_url(deal.deal_url):
         result["click"] = url
