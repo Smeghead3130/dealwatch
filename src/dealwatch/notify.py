@@ -42,11 +42,21 @@ def payload(deal, ex, decision, config):
     if decision.kind == "wishlist_target":
         title = "Wishlist target hit: " + title
         parts[0] = "Wishlist target hit"
+    elif decision.kind == "wishlist_match":
+        title = "Wishlist match: " + title
+        parts[0] = "Wishlist match"
     elif decision.kind == "evidence" and decision.wishlist_applied:
         title = "Wishlist deal: " + title
         parts[0] = "Wishlist deal — supported comparison"
     for match in decision.wishlist_matches:
         parts.append("Wishlist: " + match.item.text + " — " + match.reason)
+        if match.fit:
+            for result, requirement in zip(
+                match.fit.requirements, match.item.interpretation.requirements, strict=True
+            ):
+                marker = {"met": "✓", "unknown": "?", "not_met": "✗"}[result.status]
+                detail = result.quote if requirement.hard else result.judgement + " — model's judgement"
+                parts.append(f"{marker} {requirement.text}: {detail or 'unknown'}")
     result = {
         "title": f"{title} — A${decision.effective_price:.2f}"[:220],
         "message": "\n".join(parts)[:3900],
@@ -89,7 +99,16 @@ async def notify_once(client, db, config, now=None):
         return False
     stored = db.deal(row["node"])
     reason = None
-    if row["node"] == 0 and row["kind"].startswith("keep_"):
+    if row["node"] == 0 and row["kind"].startswith("backfill_summary:"):
+        members = json.loads(row["payload"]).get("_members", [])
+        if not members or any(
+            not (member := db.deal(m["node"]))
+            or member["revision"] != m["revision"]
+            or Deal.model_validate_json(member["json"]).unavailable(now)
+            for m in members
+        ):
+            reason = "Summary contains unavailable or revised deals"
+    elif row["node"] == 0 and row["kind"].startswith("keep_"):
         pass  # Service notices are independent of deal expiry/revisions.
     elif not stored:
         reason = "Deal no longer stored"
@@ -98,8 +117,14 @@ async def notify_once(client, db, config, now=None):
         reason = deal.unavailable(now)
         if stored["revision"] != row["revision"]:
             reason = "Offer revised after judgement"
-        if now - datetime.fromisoformat(stored["first_seen"]) > timedelta(hours=config.stale_hours):
+        if row.get("trigger", "feed") != "wishlist_backfill" and now - datetime.fromisoformat(
+            stored["first_seen"]
+        ) > timedelta(hours=config.stale_hours):
             reason = "Stale alert"
+    if row.get("trigger") == "wishlist_backfill" and now - datetime.fromisoformat(row["created"]) > timedelta(
+        hours=config.stale_hours
+    ):
+        reason = "Backfill delivery retry window expired"
     if reason:
         db.notification_done(row, "suppressed", reason, now)
         notification_log(row, "suppressed", reason)
@@ -109,6 +134,7 @@ async def notify_once(client, db, config, now=None):
         notification_log(row, "dry_run", "DRY_RUN enabled")
         return True
     message = json.loads(row["payload"])
+    message.pop("_members", None)
     message["priority"] = quiet_priority(message["priority"], config, now)
     try:
         await publish(client, config, db.topic(config.ntfy_topic), message)

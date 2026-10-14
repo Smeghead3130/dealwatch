@@ -1,6 +1,6 @@
 services:
   dealwatch:
-    image: ghcr.io/smeghead3130/dealwatch:v0.2.0
+    image: ghcr.io/smeghead3130/dealwatch:v0.3.0
     user: "568:568"
     restart: unless-stopped
     stop_grace_period: 15s
@@ -37,10 +37,16 @@ services:
       QUIET_HOURS: ""
       KEEP_EMAIL: ""
       KEEP_MASTER_TOKEN: ""
-      KEEP_NOTE_TITLE: Wishlist
+      KEEP_NOTE_TITLE: Dealwatch
       KEEP_SYNC_MINUTES: "15"
       WISHLIST_HISTORY_RATIO: "0.85"
       WISHLIST_QUOTED_RATIO: "0.85"
+      BACKFILL_DAYS: "7"
+      BACKFILL_MAX_ALERTS: "3"
+      WISHLIST_DESC_MIN_DISCOUNT: "0.20"
+      WISHLIST_DESC_MIN_VOTES: "15"
+      WISHLIST_DAILY_LIMIT: "5"
+      ALERT_DAILY_LIMIT: "5"
       HISTORY_RATIO: "0.70"
       QUOTED_RATIO: "0.75"
       MIN_OBSERVATIONS: "3"

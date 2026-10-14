@@ -62,14 +62,34 @@ def normalise_extraction(ex, deal):
     if ex.price is None and free:
         ex.price, ex.price_quote = Decimal(0), "FREE"
     if ex.price is None and not re.search(
-        r"cashback|deposit|subscription|per month|minimum spend|voucher|gift card|save\s*\$|\$[\d.]+\s*off",
+        r"cashback|deposit|subscription|per month|minimum spend|voucher|gift card|save\s*\$|\$[\d.]+\s*off|(?:US|NZ|CA|SG|HK)\$|\b(?:USD|NZD)\b",
         title,
         re.I,
     ):
-        prices = list(re.finditer(r"\$\d[\d,]*(?:\.\d{1,2})?(?!\d)", title))
-        if len(prices) == 1:
+        price_title = title.split("(", 1)[0] if not title.startswith("(") else title
+        prices = list(re.finditer(r"\$\d[\d,]*(?:\.\d{1,2})?(?!\d)", price_title))
+        # Ignore explicitly labelled seller was-prices; alternative title prices use
+        # the highest advertised option, never an invented cheaper variant.
+        prices = [p for p in prices if not re.search(r"(?:was|rrp|msrp)\s*$", title[: p.start()], re.I)]
+        alternatives = re.search(r"\$[\d.]+/\$[\d.]+", title)
+        if len(prices) == 1 or (alternatives and len(prices) == 2):
+            prices.sort(key=lambda p: Decimal(p[0][1:].replace(",", "")), reverse=True)
             ex.price_quote = prices[0][0]
             ex.price = Decimal(prices[0][0][1:].replace(",", ""))
+
+    if not ex.model and ex.identity_quote and ex.identity_quote.casefold() in title.casefold():
+        literal_name = re.split(r"\$|\s+@\s+", ex.identity_quote, maxsplit=1)[0].strip(" -—")
+        if len(re.findall(r"[A-Za-z]+", literal_name)) >= 2:
+            ex.model = literal_name
+
+    # A title is itself source evidence. Repair a missing/narrow identity quote
+    # only when every extracted identity token occurs in the literal title.
+    def identity_tokens(value):
+        return set(re.findall(r"[a-z0-9]+", re.sub(r"(?<=\w)[-‐‑](?=\w)", "", value.casefold())))
+
+    wanted = identity_tokens(" ".join(filter(None, [ex.brand, ex.model, ex.variant])))
+    if ex.model and wanted <= identity_tokens(title):
+        ex.identity_quote = title
     if free and ex.price == 0 and ex.signal == "none":
         ex.signal, ex.signal_quote = "free_tiny_cost", free[0]
     return ex

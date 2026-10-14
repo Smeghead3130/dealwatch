@@ -1,3 +1,4 @@
+import asyncio
 import json
 import secrets
 import sqlite3
@@ -6,11 +7,12 @@ from datetime import timedelta
 from .feed import revision_hash
 from .models import Deal, utcnow
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class Store:
     def __init__(self, path):
+        self.interpretation_lock = asyncio.Lock()
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(path)
         self.conn.row_factory = sqlite3.Row
@@ -51,6 +53,26 @@ class Store:
                 last_sync TEXT, failed_since TEXT, notice_queued INTEGER NOT NULL DEFAULT 0,
                 failures INTEGER NOT NULL DEFAULT 0, next_sync TEXT, error TEXT);
             PRAGMA user_version=2;
+            COMMIT;
+            """)
+
+            version = 2
+        if version == 2:
+            self.conn.executescript("""
+            BEGIN;
+            CREATE TABLE wishlist_interpretations(key TEXT PRIMARY KEY, json TEXT NOT NULL);
+            CREATE TABLE wishlist_seen(source TEXT, key TEXT, PRIMARY KEY(source,key));
+            CREATE TABLE backfill_batches(id INTEGER PRIMARY KEY, source TEXT, items TEXT,
+                created TEXT, state TEXT DEFAULT 'pending', attempts INTEGER DEFAULT 0,
+                next_at TEXT, error TEXT);
+            CREATE TABLE backfill_results(batch INTEGER, node INTEGER, revision TEXT,
+                extraction TEXT, decision TEXT, PRIMARY KEY(batch,node));
+            ALTER TABLE outbox ADD COLUMN trigger TEXT NOT NULL DEFAULT 'feed';
+            ALTER TABLE outbox ADD COLUMN wishlist INTEGER NOT NULL DEFAULT 0;
+            UPDATE outbox SET wishlist=1 WHERE kind='wishlist_target' OR EXISTS(
+                SELECT 1 FROM decisions d WHERE d.node=outbox.node AND d.revision=outbox.revision
+                AND json_extract(d.json, '$.wishlist_applied')=1);
+            PRAGMA user_version=3;
             COMMIT;
             """)
 
@@ -166,21 +188,9 @@ class Store:
                     DO UPDATE SET identity=excluded.identity,price=excluded.price,ts=excluded.ts,source=excluded.source""",
                     (deal.node_id, identity, str(observed_price), ts, deal.deal_url),
                 )
-            if decision.kind == "possible":
-                from zoneinfo import ZoneInfo
-
-                start = now.astimezone(ZoneInfo(config.tz)).replace(hour=0, minute=0, second=0, microsecond=0)
-                start = start.astimezone(now.tzinfo).isoformat()
-                count = self.conn.execute(
-                    "SELECT COUNT(*) FROM outbox WHERE kind='possible' AND created>=? "
-                    "AND state IN ('pending','sending','sent','dry_run')",
-                    (start,),
-                ).fetchone()[0]
-                if count >= config.possible_daily_limit:
-                    decision = decision.model_copy(
-                        update={"kind": "none", "reason": "Possible alert daily limit"}
-                    )
-                    payload = None
+            decision = self.limit_decision(decision, config, now)
+            if decision.kind == "none":
+                payload = None
             self.conn.execute(
                 "INSERT OR REPLACE INTO decisions(node,revision,json,extraction,ts) VALUES(?,?,?,?,?)",
                 (
@@ -194,8 +204,8 @@ class Store:
             if payload and decision.kind != "none":
                 # Reserve once per node/class even in dry-run; replay never touches this table.
                 self.conn.execute(
-                    "INSERT OR IGNORE INTO outbox(node,revision,kind,payload,next_at,created,state) "
-                    "VALUES(?,?,?,?,?,?,?)",
+                    "INSERT OR IGNORE INTO outbox(node,revision,kind,payload,next_at,created,state,wishlist) "
+                    "VALUES(?,?,?,?,?,?,?,?)",
                     (
                         deal.node_id,
                         job["revision"],
@@ -204,6 +214,7 @@ class Store:
                         ts,
                         ts,
                         "dry_run" if config.dry_run else "pending",
+                        int(decision.wishlist_applied),
                     ),
                 )
             self.conn.execute("UPDATE jobs SET state='done' WHERE id=?", (job["id"],))
@@ -249,6 +260,7 @@ class Store:
             "last_feed_error": self.meta("feed_error"),
             "last_judge": self.meta("last_judge"),
             "jobs": counts("jobs"),
+            "backfill_batches": counts("backfill_batches"),
             "notifications": counts("outbox"),
             "oldest_pending": self.conn.execute(
                 "SELECT MIN(next_at) FROM jobs WHERE state='pending'"
@@ -271,7 +283,8 @@ class Store:
             "keep_sync_degraded": bool(configured(config) and state.get("failed_since")),
             "failed_since": state.get("failed_since"),
             "last_error": state.get("error"),
-            "items": json.loads(state.get("items", "[]")),
+            "items": self.interpreted_status_items(state),
+            "interpretation_error": self.meta("wishlist_interpretation_error"),
         }
 
     def _keep_notice(self, source, episode, kind, message, config, now):
@@ -299,6 +312,30 @@ class Store:
     def wishlist_success(self, source, items, config, now):
         with self.conn:
             state = self.wishlist_state(source)
+            from .wishlist import item_key
+
+            baseline_key = "backfill_baseline:" + source
+            baseline = self.meta(baseline_key) is None
+            new_items = []
+            for item in items:
+                key = item_key(item)
+                seen = self.conn.execute(
+                    "SELECT 1 FROM wishlist_seen WHERE source=? AND key=?", (source, key)
+                ).fetchone()
+                if not seen and not baseline:
+                    new_items.append(item)
+                self.conn.execute("INSERT OR IGNORE INTO wishlist_seen VALUES(?,?)", (source, key))
+            self.conn.execute("INSERT OR IGNORE INTO meta VALUES(?,?)", (baseline_key, now.isoformat()))
+            if new_items and config.backfill_max_alerts:
+                self.conn.execute(
+                    "INSERT INTO backfill_batches(source,items,created,next_at) VALUES(?,?,?,?)",
+                    (
+                        source,
+                        json.dumps([i.model_dump(mode="json") for i in new_items]),
+                        now.isoformat(),
+                        now.isoformat(),
+                    ),
+                )
             if state and state["failed_since"] and state["notice_queued"]:
                 self._keep_notice(
                     source,
@@ -362,6 +399,11 @@ class Store:
             self.conn.execute(
                 "DELETE FROM observations WHERE ts<?", ((now - timedelta(days=180)).isoformat(),)
             )
+            self.conn.execute(
+                "DELETE FROM backfill_results WHERE batch IN (SELECT id FROM backfill_batches WHERE created<? AND state!='pending')",
+                (short,),
+            )
+            self.conn.execute("DELETE FROM backfill_batches WHERE created<? AND state!='pending'", (short,))
             self.conn.execute("DELETE FROM revisions WHERE ts<?", (short,))
             self.conn.execute("DELETE FROM decisions WHERE ts<?", (short,))
             self.conn.execute(
@@ -371,3 +413,52 @@ class Store:
             self.conn.execute(
                 "DELETE FROM outbox WHERE created<?", ((now - timedelta(days=365)).isoformat(),)
             )
+
+    def interpreted_status_items(self, state):
+        from .models import WishlistItem
+        from .wishlist import item_key
+
+        items = json.loads(state.get("items", "[]"))
+        for item in items:
+            row = self.conn.execute(
+                "SELECT json FROM wishlist_interpretations WHERE key=?",
+                (item_key(WishlistItem.model_validate(item)),),
+            ).fetchone()
+            item["interpretation"] = json.loads(row[0]) if row else None
+        return items
+
+    def limit_decision(self, decision, config, now):
+        from zoneinfo import ZoneInfo
+
+        if decision.kind == "none":
+            return decision
+
+        start = (
+            now.astimezone(ZoneInfo(config.tz))
+            .replace(hour=0, minute=0, second=0, microsecond=0)
+            .astimezone(now.tzinfo)
+            .isoformat()
+        )
+        limits = [
+            ("node!=0 OR trigger='wishlist_backfill'", config.alert_daily_limit, "Total alert daily limit")
+        ]
+        if decision.kind == "possible":
+            limits.append(("kind='possible'", config.possible_daily_limit, "Possible alert daily limit"))
+        if decision.wishlist_applied:
+            limits.append(("wishlist=1", config.wishlist_daily_limit, "Wishlist alert daily limit"))
+        for condition, limit, reason in limits:
+            count = self.conn.execute(
+                f"SELECT COUNT(*) FROM outbox WHERE ({condition}) AND created>=? AND state IN ('pending','sending','sent','dry_run')",
+                (start,),
+            ).fetchone()[0]
+            if count >= limit:
+                return decision.model_copy(update={"kind": "none", "reason": reason})
+        return decision
+
+    def already_alerted(self, node):
+        return bool(
+            self.conn.execute(
+                "SELECT 1 FROM outbox WHERE node=? AND state IN ('pending','sending','sent','dry_run','bundled')",
+                (node,),
+            ).fetchone()
+        )

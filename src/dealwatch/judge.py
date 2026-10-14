@@ -4,17 +4,24 @@ from .value import decide, excluded, validate_facts
 from .wishlist import match_items
 
 
-async def judge(client, config, deal, history, now=None, wishlist_items=None):
+async def judge(client, config, deal, history, now=None, wishlist_items=None, stored_extraction=None):
     now = now or utcnow()
     if reason := deal.unavailable(now):
         return None, Decision(kind="none", reason=reason)
     if excluded(deal, config):
         return None, Decision(kind="none", reason="Excluded category")
-    ex, model, latency = await extract(client, config, deal)
+    if stored_extraction is None:
+        ex, model, latency = await extract(client, config, deal)
+    else:
+        from .extract import normalise_extraction
+
+        ex, model, latency = normalise_extraction(stored_extraction.model_copy(deep=True), deal), "stored", 0
     matches, match_error = [], None
-    if wishlist_items and not validate_facts(deal, ex):
+    if wishlist_items and not validate_facts(deal, ex, allow_accessory=True):
         try:
-            matches, match_ms = await match_items(client, config, ex, wishlist_items)
+            matches, match_ms = await match_items(
+                client, config, ex, wishlist_items, deal, getattr(history, "db", None)
+            )
             latency += match_ms
         except Exception as exc:
             # A matcher outage must not suppress an otherwise valid non-wishlist steal.

@@ -37,3 +37,29 @@ The 40-case run matched the v0.1.0 decision engine in all 40 cases; label-class 
 versions consequently returned no alert. There were no false-positive alerts in that run.
 The 10 previously held-out cases matched their classes 10/10; the test is no longer fresh holdout
 validation after repeated evaluation. The wishlist run passed 14/14 match labels and final alert classes, with no errors.
+
+## v0.3.0 descriptions and replay
+
+`wishlist_descriptions.jsonl` adds 18 labelled synthetic cases using Mat's three real need
+phrases. Embedded `mock_*` fields are authored fixtures, **not recorded model results**.
+`scripts/evaluate_v030.py` defaults to mocked HTTP responses and also runs the 40-case saved
+extraction regression. `--live` sends only source text and wishlist data to Ollama; labels,
+mocked extractions and expected fit results are never sent. It never sends notifications.
+The ordinary `dealwatch evaluate --cases eval/wishlist_descriptions.jsonl --split all` also
+supports wishlist/vote fields. Reports distinguish live inference from mocked rules checks.
+
+`v030-offline.json`: 18/18 mocked classes, 7 alerts, zero false positives/misses. Recorded
+regression: 17 alerts before/after, precision 1.0, existing miss 15, 39/40 classes. These do not
+establish live-model accuracy. All old eval cases are previously seen acceptance fixtures.
+
+`scripts/build_replay_v030.py` builds explicit mocked replay inputs from the captured public
+feed plus user-brief node examples. Use `--feed PATH --captured-at ISO_TIMESTAMP` for a new
+capture. It reuses prior recorded extractions only where node and title match; review all
+facts if the underlying offer has changed. `scripts/replay_v030.py` applies current rules and
+outbox caps in a temporary database. The report states provenance and coverage limitations.
+
+A fresh capture was blocked by the cloud egress proxy (HTTP 403); see the fetch-status JSON
+under `tests/fixtures`. The checked-in replay uses the original 30-item feed and three brief
+examples. It yields possible alerts for 978865 and 978890, zero other alerts, with 0/2 alerts
+on the two sampled Brisbane dates. This is not full-day coverage or a measured production rate.
+Claude must capture fresh data and perform live inference checks before merge.

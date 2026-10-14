@@ -9,7 +9,7 @@ import tempfile
 from datetime import datetime
 
 from .models import WishlistItem, utcnow
-from .wishlist import FileSource, configured, parse_lines, source_key
+from .wishlist import FileSource, configured, parse_item, parse_lines, source_key
 
 
 def fetch_keep(config, factory=None):
@@ -48,10 +48,17 @@ def fetch_keep(config, factory=None):
 
     note = max(notes, key=lambda n: (edited(n), n.id))
     if isinstance(note, gkeepapi.node.List):
-        lines = [item.text for item in note.items if not item.checked and not getattr(item, "deleted", False)]
+        items = []
+        for entry in note.items:
+            if (
+                not entry.checked
+                and not getattr(entry, "deleted", False)
+                and (item := parse_item(entry.text))
+            ):
+                item.id = str(note.id) + ":" + str(entry.id)
+                items.append(item)
     else:
-        lines = note.text.splitlines()
-    items = parse_lines(lines)
+        items = parse_lines(note.text.splitlines())
     config.data_dir.mkdir(parents=True, exist_ok=True)
     fd, temp = tempfile.mkstemp(prefix=".keep-state-", dir=config.data_dir)
     try:
@@ -109,7 +116,7 @@ class KeepSource:
                 await process.wait()
 
 
-async def sync_once(db, config, source=None, now=None, force=False):
+async def sync_once(db, config, source=None, now=None, force=False, client=None):
     now = now or utcnow()
     key = source_key(config)
     state = db.wishlist_state(key)
@@ -119,6 +126,15 @@ async def sync_once(db, config, source=None, now=None, force=False):
     try:
         items = await source.fetch()
         db.wishlist_success(key, items, config, now)
+        if client is not None:
+            from .wishlist import interpret_items
+
+            try:
+                await interpret_items(client, config, items, db)
+                db.set_meta("wishlist_interpretation_error", "")
+            except Exception as exc:
+                # Interpretation outages do not turn a successful Keep read into a sync failure.
+                db.set_meta("wishlist_interpretation_error", type(exc).__name__)
         logging.getLogger("dealwatch").info(
             json.dumps(
                 {

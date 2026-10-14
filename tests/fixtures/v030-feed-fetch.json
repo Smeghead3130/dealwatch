@@ -1,0 +1,9 @@
+{
+  "attempted_at": "2026-10-14",
+  "url": "https://www.ozbargain.com.au/deals/feed",
+  "status": "blocked",
+  "error": "HTTP 403 from cloud egress proxy (CONNECT tunnel denied)",
+  "fresh_fixture_saved": false,
+  "fallback": "ozb_feed_2026-10-13.xml",
+  "required_followup": "Claude fetches fresh feed locally and reruns replay/live evaluation before merge"
+}
