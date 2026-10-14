@@ -127,20 +127,30 @@ def test_alert_tiers_and_product_name(deal, extraction, config):
     )
     assert product_name(ex) == "Amazon Basics microSDXC 256GB"
 
-    def title(kind, reason, score, signal="none"):
+    def alert(kind, reason, score, signal="none", restrictions=()):
         e = extraction.model_copy(update={"signal": signal})
-        d = Decision(kind=kind, reason=reason, effective_price=Decimal(29), value_score=Decimal(score))
-        m = payload(deal, e, d, config)
-        return m["title"], m["priority"]
+        d = Decision(
+            kind=kind,
+            reason=reason,
+            effective_price=Decimal(29),
+            value_score=Decimal(score),
+            restrictions=list(restrictions),
+        )
+        return payload(deal, e, d, config)
 
-    assert title("evidence", "35% below history", 35)[0].startswith("🔥 Good deal:")
-    assert title("evidence", "75% below history", 75)[1] == 5
-    assert title("possible", "price error", 10, "price_error")[0].startswith("🚨 Likely price error:")
+    assert (
+        alert("evidence", "35% below comparable historical median A$45.00", 35)["title"]
+        == "Good deal · $29 (35% off)"
+    )
+    assert alert("evidence", "75% below history", 75)["priority"] == 5
+    assert alert("possible", "price error", 10, "price_error")["title"].startswith("Likely price error · $29")
     # Unverified seller was-prices never earn Good deal on their own.
-    assert title("wishlist_match", "50% below seller's claimed was-price, unverified", 50)[0].startswith(
-        "🛒 Wishlist sale:"
+    m = alert(
+        "wishlist_match",
+        "Wishlist match: 50.0% below seller's claimed was-price A$58.00, unverified",
+        50,
+        restrictions=["Delivery included: A$0.00", "Bundle: a, b, c", "Membership: Prime"],
     )
-    assert title("wishlist_match", "45% below comparable historical median", 45)[0].startswith(
-        "🔥 Good deal:"
-    )
-    assert "(50% off)" in title("wishlist_match", "x, unverified", 50)[0]
+    assert m["title"] == "Wishlist sale · $29 (50% off)"
+    assert m["message"].splitlines()[1] == "Was $58 (shop's claim) · Needs Prime"
+    assert "Bundle" not in m["message"] and "A$0.00" not in m["message"]

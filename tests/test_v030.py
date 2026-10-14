@@ -109,8 +109,9 @@ def test_description_value_and_unknowns(deal, extraction, config, now, status, e
     assert d.kind == expected
     if d.kind != "none":
         message = payload(deal, extraction, d, config)["message"]
-        assert "model's judgement" in message
-        assert ("✓" if status == "met" else "?") in message
+        assert "On your wishlist:" in message
+        assert ("Not confirmed:" in message) == (status == "unknown")
+        assert "✓" not in message and "http" not in message
     deal.votes_pos = 0
     assert decide(deal, extraction, CaseHistory([]), config, now, [description_match(status)]).kind == "none"
 
