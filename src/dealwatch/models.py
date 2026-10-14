@@ -86,9 +86,11 @@ class Requirement(StrictModel):
 
 
 class Interpretation(StrictModel):
-    kind: Literal["specific_product", "need_description"]
+    # Field order matters for schema-constrained generation: requirements are written before
+    # the label, otherwise small models anchor on the first enum value (seen live on qwen3.5:9b).
     requirements: list[Requirement] = Field(default_factory=list, max_length=12)
     accessory_need: bool = False
+    kind: Literal["need_description", "specific_product"]
 
 
 class RequirementFit(StrictModel):

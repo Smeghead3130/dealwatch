@@ -17,7 +17,8 @@ async def judge(client, config, deal, history, now=None, wishlist_items=None, st
 
         ex, model, latency = normalise_extraction(stored_extraction.model_copy(deep=True), deal), "stored", 0
     matches, match_error = [], None
-    if wishlist_items and not validate_facts(deal, ex, allow_accessory=True):
+    # Specific-product matches are re-gated with full identity checks in decide().
+    if wishlist_items and not validate_facts(deal, ex, allow_accessory=True, require_identity=False):
         try:
             matches, match_ms = await match_items(
                 client, config, ex, wishlist_items, deal, getattr(history, "db", None)

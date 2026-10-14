@@ -135,3 +135,35 @@ already synced; it deliberately does not replay the current list.
 To roll back, stop v0.3, restore the **pre-upgrade snapshot**, pin the v0.2.0 image and restart.
 v0.2.0 refuses schema 3 cleanly; swapping only the image is insufficient. Restoring a snapshot
 also rewinds delivery history, so account for any notifications sent after the snapshot.
+
+## Claude review, 14 October 2026 (live qwen3.5:9b via gpu-guard)
+
+Codex's 18/18 description result used mocked model answers. **Live, the first run produced 0/7 alerts**:
+the model labelled every wishlist item `specific_product` (even "Lenses for Fujifilm XT-5"), so no
+description matching ran. Claude fixed this on the branch:
+
+1. `Interpretation` field order is now requirements → accessory_need → kind, so the label is chosen
+   after the requirements. The classify prompt has a clearer rule, and its examples no longer
+   reuse Mat's real items (those made the eval circular).
+2. A description with only soft requirements gets its first requirement forced hard (otherwise
+   "chocolate" would fit every deal).
+3. Description matching skips the brand/model identity gate (`validate_facts(require_identity=False)`);
+   the quoted per-requirement fit check is the identity proof. Specific-product matches are still
+   re-gated with full identity checks in `decide()`.
+4. The fit call receives `wanted_is_accessory`, and the prompt lets accessory-type needs (lenses) match.
+5. A `not_met` row no longer needs a verbatim quote (downgrading it to unknown turned rejections into
+   possible alerts, e.g. an SSD matched the 3.5" HDD item). Only `met` needs a quote.
+6. An incomplete/duplicate fit result retries once before erroring.
+
+Live description eval after the fixes: **5 alerts, precision 5/5, 0 false positives**. Misses: 5
+(camping battery, solar unknown → expected possible) and 17 (lens, mount unknown → expected possible).
+Cases 1, 8 and 12 alert as `possible` rather than a full match, because the model paraphrases quotes and
+`supported()` downgrades those `met` rows to unknown. Cases 2 and 3 still raise after the retry (final
+decision `none`, which is correct). Recorded v0.2 regression: unchanged, 17/17 precision, 0 changed classes.
+134 offline tests pass.
+
+**Backlog for a later Codex pass:** quote-matching tolerance for `met` rows (normalise whitespace,
+punctuation and case; allow a short fuzzy match); the two remaining misses; the fit-row count errors on
+4-requirement items; `description_candidates()` hard-codes Mat's three current item families
+(overfit; prefer a general lexical/LLM prefilter); and more realistic eval cases (real OzB titles,
+not "@ Test Retailer" with $100 prices).

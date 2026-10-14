@@ -475,3 +475,73 @@ def test_price_recovery_does_not_borrow_next_variant_price(deal, extraction, tit
     deal.title = title
     extraction.price, extraction.variant = None, variant
     assert normalise_extraction(extraction, deal).price is None
+
+
+def test_soft_only_description_gets_a_hard_requirement():
+    import asyncio
+
+    from dealwatch.models import Interpretation, Requirement
+    from dealwatch.wishlist import interpret_items, parse_lines
+
+    class Client:
+        async def post(self, *args, **kwargs):
+            body = Interpretation(
+                kind="need_description", requirements=[Requirement(text="chocolate", hard=False)]
+            ).model_dump_json()
+
+            class R:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {"message": {"content": body}}
+
+            return R()
+
+    from dealwatch.config import Config
+
+    (item,) = asyncio.run(interpret_items(Client(), Config(), parse_lines(["chocolate"])))
+    assert item.interpretation.requirements[0].hard
+
+
+def test_description_gate_skips_identity_but_specific_gate_keeps_it(deal, extraction):
+    ex = extraction.model_copy(update={"model": None, "identity_quote": ""})
+    assert validate_facts(deal, ex) == "Product identity lacks source evidence"
+    assert validate_facts(deal, ex, require_identity=False) is None
+
+
+def test_fit_prompt_is_told_when_the_wanted_thing_is_an_accessory(deal, extraction, config):
+    import asyncio
+
+    from dealwatch.wishlist import match_descriptions, parse_lines
+
+    seen = {}
+
+    def handler(req):
+        body = json.loads(req.content)
+        seen.update(json.loads(body["messages"][1]["content"]))
+        fit = {
+            "requirements": [{"index": 0, "status": "not_met", "quote": "", "judgement": ""}],
+            "overall": "no",
+        }
+        return httpx.Response(200, json={"message": {"content": json.dumps(fit)}})
+
+    (item,) = parse_lines(["Lenses for Fujifilm XT-5"])
+    item = item.model_copy(
+        update={
+            "interpretation": Interpretation(
+                kind="need_description",
+                accessory_need=True,
+                requirements=[{"text": "lens with Fujifilm X mount", "hard": True}],
+            )
+        }
+    )
+    ex = extraction.model_copy(update={"accessory": True})
+    deal = deal.model_copy(update={"title": "Sigma 18-50mm lens for Fujifilm X mount $499"})
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            return await match_descriptions(client, config, deal, ex, [item])
+
+    asyncio.run(run())
+    assert seen["wanted_is_accessory"] is True

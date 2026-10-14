@@ -23,15 +23,17 @@ def excluded(deal, config):
     )
 
 
-def validate_facts(deal, ex, allow_accessory=False):
+def validate_facts(deal, ex, allow_accessory=False, require_identity=True):
     text = source_text(deal)
     if ex.price is None or ex.currency.upper() != "AUD":
         return "Missing upfront AUD price"
-    if not supported(ex.identity_quote, text) or not ex.model:
+    if require_identity and (not supported(ex.identity_quote, text) or not ex.model):
         return "Product identity lacks source evidence"
     from .wishlist import tokens
 
-    if not tokens(" ".join(filter(None, [ex.brand, ex.model, ex.variant]))) <= tokens(ex.identity_quote):
+    if require_identity and not tokens(" ".join(filter(None, [ex.brand, ex.model, ex.variant]))) <= tokens(
+        ex.identity_quote
+    ):
         return "Product identity not supported by quote"
     if not supported(ex.price_quote, text) or ex.price not in amounts(ex.price_quote):
         # A literal free item is the sole nonnumeric price exception.
@@ -222,7 +224,12 @@ def seller_was(deal):
 
 
 def description_decide(deal, ex, history, config, now, matches):
-    if deal.unavailable(now) or excluded(deal, config) or validate_facts(deal, ex, allow_accessory=True):
+    # Identity is proven per requirement by the quoted fit check, not by brand/model tokens.
+    if (
+        deal.unavailable(now)
+        or excluded(deal, config)
+        or validate_facts(deal, ex, allow_accessory=True, require_identity=False)
+    ):
         return Decision(kind="none", reason="Description failed deal safety gates")
     effective = ex.price + (ex.shipping or Decimal(0))
     signals, scores = [], []
