@@ -454,3 +454,24 @@ def test_interpretation_visible_in_wishlist(db, config, now):
     )
     db.conn.commit()
     assert db.wishlist_status(config)["items"][0]["interpretation"]["kind"] == "need_description"
+
+
+def test_captured_coffee_variant_price_recovery(deal, extraction):
+    from pathlib import Path
+
+    captured = json.loads(Path("tests/fixtures/ozb_nodes_2026-10-14.json").read_text())
+    deal.title = next(n["title"] for n in captured["nodes"] if n["node"] == 978861)
+    extraction.model, extraction.brand, extraction.variant = "1kg SO", None, "Brazil or Peru"
+    extraction.price, extraction.shipping = None, None
+    ex = normalise_extraction(extraction, deal)
+    assert ex.price == Decimal("30.65") and validate_facts(deal, ex) is None
+
+
+@pytest.mark.parametrize(
+    "title,variant",
+    [("SSD 1TB $100, 2TB $150 @ Shop", "2TB"), ("Coffee $30.65 Brazil or Peru, Decaf $35 @ Shop", "Decaf")],
+)
+def test_price_recovery_does_not_borrow_next_variant_price(deal, extraction, title, variant):
+    deal.title = title
+    extraction.price, extraction.variant = None, variant
+    assert normalise_extraction(extraction, deal).price is None

@@ -19,7 +19,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 5,
+          "latency_ms": 6,
           "wishlist_matches": [
             {
               "item": {
@@ -263,7 +263,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 5,
           "wishlist_matches": [],
           "wishlist_error": null,
           "wishlist_applied": false,
@@ -387,7 +387,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 9,
           "wishlist_matches": [],
           "wishlist_error": null,
           "wishlist_applied": false,
@@ -437,7 +437,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 7,
           "wishlist_matches": [
             {
               "item": {
@@ -515,7 +515,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 7,
           "wishlist_matches": [
             {
               "item": {
@@ -593,7 +593,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 5,
           "wishlist_matches": [
             {
               "item": {
@@ -657,7 +657,7 @@
           "sources": [],
           "restrictions": [],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 8,
           "wishlist_matches": [],
           "wishlist_error": null,
           "wishlist_applied": false,
@@ -681,7 +681,7 @@
             "Delivery included: A$0.00"
           ],
           "model": "qwen3.5:9b",
-          "latency_ms": 4,
+          "latency_ms": 5,
           "wishlist_matches": [],
           "wishlist_error": null,
           "wishlist_applied": false,

@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from zoneinfo import ZoneInfo
 
 from dealwatch.__main__ import CaseHistory
 from dealwatch.config import Config
@@ -57,34 +58,27 @@ def replay():
         notifications = db.conn.execute("SELECT node,kind,state,created FROM outbox").fetchall()
         days = sorted(
             {
-                datetime.fromisoformat(x["timestamp"])
-                .astimezone(__import__("zoneinfo").ZoneInfo(config.tz))
-                .date()
-                .isoformat()
+                datetime.fromisoformat(x["timestamp"]).astimezone(ZoneInfo(config.tz)).date().isoformat()
                 for x in inputs
             }
         )
         counts = {
             day: sum(
-                datetime.fromisoformat(r["created"])
-                .astimezone(__import__("zoneinfo").ZoneInfo(config.tz))
-                .date()
-                .isoformat()
-                == day
+                datetime.fromisoformat(r["created"]).astimezone(ZoneInfo(config.tz)).date().isoformat() == day
                 for r in notifications
             )
             for day in days
         }
         db.close()
     return {
-        "mode": "offline partial historical feed plus user-brief examples; NOT fresh feed or live model results",
+        "mode": "offline mocked replay of fresh feed and four captured public node titles; NOT live-model results",
         "rows": rows,
         "summary": {
             "cases": len(rows),
             "alerts": [{"node": r["node"], "kind": r["kind"]} for r in notifications],
             "notifications_per_sampled_local_day": counts,
             "full_day_coverage": False,
-            "rate_limitation": "A 30-item feed snapshot and three selected examples cannot estimate a real daily rate. Default global cap is 5; no minimum is forced.",
+            "rate_limitation": "A 30-item feed snapshot and four selected examples cannot estimate a real daily rate. Default global cap is 5; no minimum is forced.",
         },
     }
 

@@ -14,8 +14,8 @@ recorded = {
     for x in map(json.loads, Path("eval/reports/live-five-results.jsonl").read_text().splitlines())
 }
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--feed", type=Path, default=Path("tests/fixtures/ozb_feed_2026-10-13.xml"))
-parser.add_argument("--captured-at", default="2026-10-13T13:49:12+00:00")
+parser.add_argument("--feed", type=Path, default=Path("tests/fixtures/ozb_feed_2026-10-14.xml"))
+parser.add_argument("--captured-at", default="2026-10-14T05:29:43+00:00")
 args = parser.parse_args()
 feed = parse_feed(args.feed.read_bytes())
 rows = []
@@ -49,31 +49,43 @@ for d in feed:
             "extraction": ex,
             "provenance": provenance,
             "timestamp": args.captured_at,
+            "source_fixture": str(args.feed),
         }
     )
-for node, title, model in [
-    (978861, "Coffee $30.65 @ Retailer", "Coffee"),
-    (978865, "Xbox Game $4.87 (Was $97.45) @ Xbox (Game Pass required)", "Xbox Game"),
-    (978890, "Cadbury Jumbo Box 1.56kg $29 (Was $58) @ BIG W", "Cadbury Jumbo Box 1.56kg"),
-]:
+for captured in json.loads(Path("tests/fixtures/ozb_nodes_2026-10-14.json").read_text())["nodes"]:
+    node, title = captured["node"], captured["title"]
     if any(row["node"] == node for row in rows):
         continue
+    # Only title is captured. Timestamps and extraction fields are authored replay inputs,
+    # never claimed to be a complete historical/live model reconstruction.
+    model = {
+        978840: "Durex Invisible Reg/Wide Fit Condoms Pack of 10",
+        978861: "1kg SO",
+        978865: "Leisure Suit Larry - Wet Dreams Saga Bundle",
+        978890: "Cadbury Variety Jumbo Chocolate Box 110 Pieces 1.56kg",
+    }[node]
     d = Deal(
         node_id=node,
         title=title,
         published=datetime(2026, 10, 14, tzinfo=timezone.utc),
-        deal_url=f"https://www.ozbargain.com.au/node/{node}",
+        deal_url=captured["url"],
     )
     ex = Extraction(model=model, identity_quote=model, price=None, condition="new")
     if node == 978865:
         ex.membership = "Game Pass required"
+    if node == 978840:
+        ex.membership = "Prime required for free delivery; non-subscription price used"
+    if node == 978861:
+        ex.variant = "Brazil or Peru"
+
     rows.append(
         {
             "node": node,
             "deal": d.model_dump(mode="json"),
             "extraction": ex.model_dump(mode="json"),
-            "provenance": "title reconstructed from user brief; mocked extraction; page unavailable in cloud, not fetched fact",
-            "timestamp": "2026-10-14T00:00:00+00:00",
+            "provenance": "fresh public node title; authored extraction and publication time, not live-model output",
+            "source_fixture": "tests/fixtures/ozb_nodes_2026-10-14.json",
+            "timestamp": args.captured_at,
         }
     )
 Path("eval/replay_v030.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))

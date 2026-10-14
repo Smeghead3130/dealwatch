@@ -58,7 +58,7 @@ See `eval/reports/v030-offline.json` and `v030-replay.json`. Commands:
 .venv/bin/python scripts/replay_v030.py
 ```
 
-**128 offline tests pass**, including the original 83 unchanged. Ruff lint and formatting pass.
+**131 offline tests pass**, including the original 83 unchanged. Ruff lint and formatting pass.
 The v0.3.0 Python wheel also built successfully (local artifact only).
 The actual service passed local RSS polling, schema-3 initialization, heartbeat, clean shutdown
 and restart/topic-persistence checks using a temporary data directory. New tests cover price parsing, source quote recovery,
@@ -75,35 +75,37 @@ The actual frozen v0.2.0 Store is used to create schema 2 and prove it refuses s
 
 ## Replay alerts for Mat
 
-The cloud proxy denied the requested fresh public feed fetch with HTTP 403. No fresh fixture
-was fabricated. `tests/fixtures/v030-feed-fetch.json` records the failure. The replay instead
-uses the **existing 30-item capture from 13 October**, four matching recorded extractions
-where available, conservative authored extractions for remaining items, and three titles
-reconstructed from the user brief. Every input has provenance in `eval/replay_v030.jsonl`.
-This is a useful deterministic rule replay, not a reconstruction of the full 130 decisions.
+A **fresh 30-item public feed** was captured at 2026-10-14 05:29:43 UTC (15:29:43 Brisbane),
+HTTP 200, and saved as `tests/fixtures/ozb_feed_2026-10-14.xml` alongside the original. The
+four named node pages were also fetched; only their deal titles were parsed, not comments.
+Captured titles are in `tests/fixtures/ozb_nodes_2026-10-14.json`. The initial cloud 403 was
+resolved after adding the required network domains; fetch metadata/checksum are recorded.
+
+The 34-input replay uses those real captured titles with explicitly authored extraction
+responses, and an assumed publication time for the four standalone nodes (no vote signal
+is derived for them). It is a deterministic rule replay, not live inference or a complete
+reconstruction of the historical 130 decisions. Each input records its provenance.
 
 | Node | Would alert | Reason and restrictions |
 | --- | --- | --- |
-| 978865 | Possible — Xbox Game, A$4.87 | Seller claimed was-price A$97.45, unverified; Game Pass required; delivery unknown. Title/extraction reconstructed from brief. |
-| 978890 | Possible — Cadbury Jumbo Box 1.56kg, A$29 | Seller claimed was-price A$58 at BIG W, unverified; delivery unknown. Title/extraction reconstructed from brief. |
+| 978865 | Possible — Leisure Suit Larry: Wet Dreams Saga Bundle, A$4.87 | Seller claimed was-price A$97.45, unverified; Game Pass required; delivery unknown. Public title captured; extraction mocked. |
+| 978890 | Possible — Cadbury Jumbo Box 1.56kg, A$29 | Seller claimed was-price A$58 at BIG W, unverified; delivery unknown. Public title captured; extraction mocked. |
 
 978840 (Durex) now has a conservative A$5 upfront price, but RRP alone does not qualify;
 Prime/delivery restrictions remain. 978861 (coffee) parses A$30.65 but has no supported value
 signal in the supplied brief, so does not alert. The Mercedes A$65,490 arithmetic is preserved.
 
-Observed sample counts: **0 on 13 October, 2 on 14 October (Australia/Brisbane)**. Coverage is
+Observed sample count: **2 alerts from 34 inputs on 14 October (Australia/Brisbane)**. Coverage is
 partial, selected and mocked; it cannot establish a real daily rate. The default cap is five
 across deal classes, matching the upper end of Mat's requested 1–5/day range without forcing
 low-quality alerts. Claude must measure a full live dry-run day before judging usefulness.
 
 ## Claude's required checks before merge/release
 
-1. Fetch a genuinely fresh feed locally and save it alongside the existing capture. The
-   cloud network draft requests `www.ozbargain.com.au` and `api.github.com`; neither domain
-   was usable during the initial checks. Capture command, time and response status.
-   `scripts/build_replay_v030.py --feed PATH --captured-at ISO_TIMESTAMP` creates explicitly
-   mocked inputs; review these facts before running `scripts/replay_v030.py`. Mocked facts
-   must not be relabelled as live model outputs.
+1. Review the committed fresh feed and four captured node titles. Repeat the capture locally
+   if offers have changed before review. `scripts/build_replay_v030.py --feed PATH
+   --captured-at ISO_TIMESTAMP` prepares explicitly mocked inputs; review them before
+   `scripts/replay_v030.py`. Mocked facts must not be relabelled as live model outputs.
 2. Run `.venv/bin/python scripts/evaluate_v030.py --live --output /tmp/v030-live.json` using
    gpu-guard `http://192.168.50.157:30069`, qwen3.5:9b. Never use direct port 30068. The script
    reports precision, misses and false-positive IDs. Alternatively `python -m dealwatch

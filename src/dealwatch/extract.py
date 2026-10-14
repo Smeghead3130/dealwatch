@@ -72,6 +72,21 @@ def normalise_extraction(ex, deal):
         # the highest advertised option, never an invented cheaper variant.
         prices = [p for p in prices if not re.search(r"(?:was|rrp|msrp)\s*$", title[: p.start()], re.I)]
         alternatives = re.search(r"\$[\d.]+/\$[\d.]+", title)
+        if len(prices) > 1 and not alternatives and ex.variant:
+            # e.g. "$30.65 Brazil or Peru, Decaf $35": only recover the amount
+            # immediately followed by the extracted variant, not a different option.
+            wanted_variant = set(re.findall(r"[a-z0-9]+", ex.variant.casefold()))
+            matching = []
+            for index, price in enumerate(prices):
+                end = prices[index + 1].start() if index + 1 < len(prices) else len(price_title)
+                segment = price_title[price.end() : end]
+                if "," not in segment:
+                    continue
+                after = set(re.findall(r"[a-z0-9]+", segment.split(",", 1)[0].casefold()))
+                if wanted_variant and wanted_variant <= after:
+                    matching.append(price)
+            if len(matching) == 1:
+                prices = matching
         if len(prices) == 1 or (alternatives and len(prices) == 2):
             prices.sort(key=lambda p: Decimal(p[0][1:].replace(",", "")), reverse=True)
             ex.price_quote = prices[0][0]
