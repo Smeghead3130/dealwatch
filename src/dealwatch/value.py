@@ -129,6 +129,10 @@ def base_decide(deal, ex, history, config, now):
     }
     if ex.signal in patterns and supported(ex.signal_quote, source_text(deal)):
         valid = bool(re.search(patterns[ex.signal], ex.signal_quote, re.I))
+        if ex.signal == "clearance":
+            # "Clearance" alone produced noise (Pixel 10 at $797, iPhone Air at $999); clearance
+            # deals still alert through the was-price, vote and history paths below.
+            valid = False
         if ex.signal == "lowest_ever":
             valid = valid and bool(quoted_references(ex, deal))
         if ex.signal == "free_tiny_cost":

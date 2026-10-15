@@ -1,7 +1,7 @@
 {"id": 1, "split": "tune", "title": "Seagate IronWolf 12TB HDD $200 Delivered", "summary": "", "expected": "evidence", "history": [400, 450, 500]}
 {"id": 2, "split": "tune", "title": "Dell G2724D 27 inch Monitor $210 Delivered", "summary": "Was $400 at Dell last week.", "expected": "evidence", "history": []}
 {"id": 3, "split": "tune", "title": "Anker C800 Solar Generator $199 Delivered \u2014 Pricing Error", "summary": "", "expected": "possible", "history": []}
-{"id": 4, "split": "tune", "title": "Samsung T7 2TB SSD $150 Delivered \u2014 Clearance", "summary": "", "expected": "possible", "history": []}
+{"id": 4, "split": "tune", "title": "Samsung T7 2TB SSD $150 Delivered \u2014 Clearance", "summary": "", "expected": "none", "history": [], "note": "Clearance alone no longer alerts (Mat feedback 2026-10-15)"}
 {"id": 5, "split": "tune", "title": "Sony WH1000XM5 Headphones $300 Delivered", "summary": "70% off RRP $1000.", "expected": "none", "history": []}
 {"id": 6, "split": "tune", "title": "WD Blue 4TB HDD $99 Delivered", "summary": "", "expected": "none", "history": []}
 {"id": 7, "split": "tune", "title": "Apple AirPods Pro 2 $99 after cashback Delivered", "summary": "Pay $299 upfront, claim $200 cashback.", "expected": "none", "history": [300, 300, 300]}
@@ -11,7 +11,7 @@
 {"id": 11, "split": "tune", "title": "Seagate Exos 18TB HDD $180 Delivered (Recertified)", "summary": "Same recertified drive was $350 at ServerPartDeals last week.", "expected": "evidence", "history": []}
 {"id": 12, "split": "tune", "title": "Sony A7IV Camera $1500 Delivered (Grey Import)", "summary": "Same grey import was $2400 at DWI last week.", "expected": "evidence", "history": []}
 {"id": 13, "split": "tune", "title": "Sony A7IV Camera Case $20 Delivered \u2014 Clearance", "summary": "Case only, camera not included.", "expected": "none", "history": []}
-{"id": 14, "split": "tune", "title": "Anker C800 Power Station + 100W Solar Panel $199 Delivered \u2014 Clearance", "summary": "", "expected": "possible", "history": []}
+{"id": 14, "split": "tune", "title": "Anker C800 Power Station + 100W Solar Panel $199 Delivered \u2014 Clearance", "summary": "", "expected": "none", "history": [], "note": "Clearance alone no longer alerts (Mat feedback 2026-10-15)"}
 {"id": 15, "split": "tune", "title": "Dell G2724D Monitor $200 + Delivery", "summary": "Was $400 at Dell last week. Delivery calculated at checkout.", "expected": "evidence", "history": []}
 {"id": 16, "split": "tune", "title": "LG C4 55 inch TV $900 Delivered", "summary": "", "expected": "none", "history": []}
 {"id": 17, "split": "tune", "title": "Samsung S90D 65 inch TV $1000 Delivered", "summary": "Was $2200 at JB Hi-Fi last week.", "expected": "evidence", "history": []}
@@ -30,7 +30,7 @@
 {"id": 30, "split": "tune", "title": "Acme X1 Router $40 Delivered", "summary": "Was $100 at Officeworks last week.", "expected": "none", "history": [], "status": "upcoming"}
 {"id": 31, "split": "heldout", "title": "Bose QuietComfort Ultra Headphones $180 Delivered", "summary": "Previously $399 at JB Hi-Fi last week for this same model.", "expected": "evidence", "history": []}
 {"id": 32, "split": "heldout", "title": "Toshiba N300 16TB HDD $220 Delivered", "summary": "", "expected": "evidence", "history": [400, 420, 450]}
-{"id": 33, "split": "heldout", "title": "Eufy S1 Pro Robot Vacuum $500 Delivered \u2014 Clearance", "summary": "", "expected": "possible", "history": []}
+{"id": 33, "split": "heldout", "title": "Eufy S1 Pro Robot Vacuum $500 Delivered \u2014 Clearance", "summary": "", "expected": "none", "history": [], "note": "Clearance alone no longer alerts (Mat feedback 2026-10-15)"}
 {"id": 34, "split": "heldout", "title": "Samsung 990Pro 2TB SSD $100 after cashback Delivered", "summary": "Upfront price is $300. Cashback $200.", "expected": "none", "history": [300, 310, 320]}
 {"id": 35, "split": "heldout", "title": "Canon R8 Camera Strap $9 Delivered \u2014 Clearance", "summary": "Strap only; Canon R8 camera not included.", "expected": "none", "history": []}
 {"id": 36, "split": "heldout", "title": "LG B4 55 inch TV $700 Delivered", "summary": "RRP $2999. Huge 76% discount.", "expected": "none", "history": []}

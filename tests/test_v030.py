@@ -546,3 +546,10 @@ def test_fit_prompt_is_told_when_the_wanted_thing_is_an_accessory(deal, extracti
 
     asyncio.run(run())
     assert seen["wanted_is_accessory"] is True
+
+
+def test_clearance_word_alone_does_not_alert(deal, extraction, config, now):
+    deal.title = "Google Pixel 10 128GB $797 @ Harvey Norman"
+    deal.summary = "Clearance deals on the Google Pixel 10 series."
+    extraction.signal, extraction.signal_quote = "clearance", "Clearance deals on the Google Pixel 10 series."
+    assert decide(deal, extraction, CaseHistory([]), config, now).kind == "none"
