@@ -110,3 +110,47 @@ def test_quiet_hours(config, now):
     config.quiet_hours = "22:00-07:00"
     assert quiet_priority(4, config, now) == 2  # Brisbane midnight
     assert quiet_priority(4, config, now + timedelta(hours=12)) == 4
+
+
+def test_alert_tiers_and_product_name(deal, extraction, config):
+    from decimal import Decimal
+
+    from dealwatch.models import Decision
+    from dealwatch.notify import payload, product_name
+
+    ex = extraction.model_copy(
+        update={
+            "brand": "Amazon Basics",
+            "model": "Amazon Basics microSDXC 256GB",
+            "variant": "microSDXC 256GB",
+        }
+    )
+    assert product_name(ex) == "Amazon Basics microSDXC 256GB"
+
+    def alert(kind, reason, score, signal="none", restrictions=()):
+        e = extraction.model_copy(update={"signal": signal})
+        d = Decision(
+            kind=kind,
+            reason=reason,
+            effective_price=Decimal(29),
+            value_score=Decimal(score),
+            restrictions=list(restrictions),
+        )
+        return payload(deal, e, d, config)
+
+    assert (
+        alert("evidence", "35% below comparable historical median A$45.00", 35)["title"]
+        == "Good deal · $29 (35% off)"
+    )
+    assert alert("evidence", "75% below history", 75)["priority"] == 5
+    assert alert("possible", "price error", 10, "price_error")["title"].startswith("Likely price error · $29")
+    # Unverified seller was-prices never earn Good deal on their own.
+    m = alert(
+        "wishlist_match",
+        "Wishlist match: 50.0% below seller's claimed was-price A$58.00, unverified",
+        50,
+        restrictions=["Delivery included: A$0.00", "Bundle: a, b, c", "Membership: Prime"],
+    )
+    assert m["title"] == "Wishlist sale · $29 (50% off)"
+    assert m["message"].splitlines()[1] == "Was $58 (shop's claim) · Needs Prime"
+    assert "Bundle" not in m["message"] and "A$0.00" not in m["message"]

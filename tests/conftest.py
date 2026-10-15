@@ -29,7 +29,7 @@ def db(tmp_path):
 def deal(now):
     return Deal(
         node_id=123,
-        title="Acme X1 8TB HDD $100 Delivered — Clearance",
+        title="Acme X1 8TB HDD $100 Delivered — Price Error?",
         published=now,
         summary="Was $200 at JB Hi-Fi last week.",
         deal_url="https://www.ozbargain.com.au/node/123",
@@ -49,8 +49,8 @@ def extraction():
         condition="new",
         shipping=0,
         shipping_quote="Delivered",
-        signal="clearance",
-        signal_quote="Clearance",
+        signal="price_error",
+        signal_quote="Price Error",
     )
 
 

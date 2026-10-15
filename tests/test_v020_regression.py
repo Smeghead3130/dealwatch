@@ -14,6 +14,12 @@ def test_all_40_nonwishlist_decisions_match_v010(config):
         for line in Path("eval/reports/v020-nonwishlist-regression.jsonl").read_text().splitlines()
     ]
     cases = [row for row in rows if "id" in row]
+    # Intentional changes since v0.1.0, with the user feedback that caused them.
+    changed = {
+        4: "none",
+        14: "none",
+        33: "none",
+    }  # 'Clearance' alone no longer alerts (Mat, 15 Oct: Pixel 10 noise)
     assert {row["id"] for row in cases} == set(range(1, 41))
     for row in cases:
         now = datetime.fromisoformat(row["timestamp"])
@@ -26,6 +32,9 @@ def test_all_40_nonwishlist_decisions_match_v010(config):
             actual = decide(
                 deal, Extraction.model_validate(row["extraction"]), CaseHistory(row["history"]), config, now
             )
+        if row["id"] in changed:
+            assert actual.kind == changed[row["id"]], row["id"]
+            continue
         assert (
             actual.model_dump(mode="json", include=set(row["legacy_decision"])) == row["legacy_decision"]
         ), row["id"]

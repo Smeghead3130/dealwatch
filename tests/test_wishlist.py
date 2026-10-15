@@ -231,9 +231,9 @@ def test_target_boundary_and_delivery(deal, extraction, config, now, target, shi
     assert d.kind == kind
     if kind == "wishlist_target":
         msg = payload(deal, extraction, d, config)
-        assert msg["priority"] == 4 and msg["title"].startswith("Wishlist target hit:")
+        assert msg["priority"] == 4 and msg["title"].startswith("Target price hit · $")
         assert "steal" not in msg["title"].lower()
-        assert "Wishlist: Acme X1 8TB" in msg["message"]
+        assert "On your wishlist: Acme X1 8TB" in msg["message"]
 
 
 @pytest.mark.parametrize("gate", ["expired", "accessory", "deposit", "subscription", "cashback", "unknown"])

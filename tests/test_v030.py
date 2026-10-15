@@ -109,8 +109,9 @@ def test_description_value_and_unknowns(deal, extraction, config, now, status, e
     assert d.kind == expected
     if d.kind != "none":
         message = payload(deal, extraction, d, config)["message"]
-        assert "model's judgement" in message
-        assert ("✓" if status == "met" else "?") in message
+        assert "On your wishlist:" in message
+        assert ("Not confirmed:" in message) == (status == "unknown")
+        assert "✓" not in message and "http" not in message
     deal.votes_pos = 0
     assert decide(deal, extraction, CaseHistory([]), config, now, [description_match(status)]).kind == "none"
 
@@ -545,3 +546,10 @@ def test_fit_prompt_is_told_when_the_wanted_thing_is_an_accessory(deal, extracti
 
     asyncio.run(run())
     assert seen["wanted_is_accessory"] is True
+
+
+def test_clearance_word_alone_does_not_alert(deal, extraction, config, now):
+    deal.title = "Google Pixel 10 128GB $797 @ Harvey Norman"
+    deal.summary = "Clearance deals on the Google Pixel 10 series."
+    extraction.signal, extraction.signal_quote = "clearance", "Clearance deals on the Google Pixel 10 series."
+    assert decide(deal, extraction, CaseHistory([]), config, now).kind == "none"

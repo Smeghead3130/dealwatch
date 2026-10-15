@@ -1,6 +1,8 @@
 import json
 import logging
+import re
 from datetime import datetime, timedelta
+from decimal import Decimal
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -31,37 +33,116 @@ def safe_url(value):
         return None
 
 
-def payload(deal, ex, decision, config):
-    title = " ".join(filter(None, [ex.brand, ex.model, ex.variant]))
-    parts = [
-        decision.kind + ("-backed steal" if decision.kind == "evidence" else " — unverified"),
-        decision.reason,
-    ]
-    parts.extend(decision.restrictions)
-    parts.extend(decision.sources[:3])
+WEAK_EVIDENCE = ("unverified", "community signal", "possible")
+
+
+def product_name(ex):
+    """Brand, model and variant without the repeats extraction sometimes produces."""
+    parts = []
+    for part in (ex.brand, ex.model, ex.variant):
+        part = (part or "").strip()
+        if part and not any(part.lower() in kept.lower() for kept in parts):
+            parts = [kept for kept in parts if kept.lower() not in part.lower()] + [part]
+    return " ".join(parts)
+
+
+def tier(ex, decision):
+    """Alert label from deterministic decision facts only (no model judgement)."""
+    weak = decision.kind == "possible" or any(w in decision.reason.lower() for w in WEAK_EVIDENCE)
+    score = decision.value_score or Decimal(0)
+    if ex.signal == "price_error" or score >= 70:
+        return "Likely price error", 5, "rotating_light"
+    if decision.kind == "evidence" or (score >= 40 and not weak):
+        return "Good deal", 4, "fire"
     if decision.kind == "wishlist_target":
-        title = "Wishlist target hit: " + title
-        parts[0] = "Wishlist target hit"
-    elif decision.kind == "wishlist_match":
-        title = "Wishlist match: " + title
-        parts[0] = "Wishlist match"
-    elif decision.kind == "evidence" and decision.wishlist_applied:
-        title = "Wishlist deal: " + title
-        parts[0] = "Wishlist deal — supported comparison"
-    for match in decision.wishlist_matches:
-        parts.append("Wishlist: " + match.item.text + " — " + match.reason)
-        if match.fit:
-            for result, requirement in zip(
-                match.fit.requirements, match.item.interpretation.requirements, strict=True
-            ):
-                marker = {"met": "✓", "unknown": "?", "not_met": "✗"}[result.status]
-                detail = result.quote if requirement.hard else result.judgement + " — model's judgement"
-                parts.append(f"{marker} {requirement.text}: {detail or 'unknown'}")
+        return "Target price hit", 4, "dart"
+    if decision.kind == "wishlist_match":
+        return "Wishlist sale", 3, "shopping_cart"
+    return "Possible deal", 3, "mag"
+
+
+def money(value):
+    value = Decimal(value)
+    return f"${value:,.0f}" if value == value.to_integral() else f"${value:,.2f}"
+
+
+BASIS = [
+    (
+        re.compile(r"seller's claimed was-price A\$([\d,.]+)"),
+        lambda m: f"Was {money(m[1].replace(',', ''))} (shop's claim)",
+    ),
+    (
+        re.compile(r"historical median A\$([\d,.]+)"),
+        lambda m: f"Usually about {money(m[1].replace(',', ''))}",
+    ),
+    (re.compile(r"below (.+?) comparison quoted in post"), lambda m: f"Cheaper than {m[1]} (per post)"),
+    (re.compile(r"(\d+) net votes"), lambda m: f"{m[1]} upvotes in its first hours"),
+    (
+        re.compile(r"[<>=]+ A\$([\d,.]+)\. This is a target hit"),
+        lambda m: f"Your target: {money(m[1].replace(',', ''))}",
+    ),
+    (re.compile(r"clearance", re.I), lambda m: "On clearance"),
+    (re.compile(r"price error", re.I), lambda m: "Possible pricing mistake"),
+]
+
+
+def basis(reason):
+    found = []
+    for pattern, render in BASIS:
+        if (m := pattern.search(reason)) and (text := render(m)) not in found:
+            found.append(text)
+    return found[:2]
+
+
+def catches(restrictions):
+    """Only the conditions that change whether Mat can buy at this price; at most two."""
+    out = []
+    for r in restrictions:
+        key, _, value = r.partition(": ")
+        if key == "Membership":
+            out.append("Needs " + value)
+        elif key == "Coupon":
+            out.append("Code " + value)
+        elif key.startswith("Cashback"):
+            out.append("Price before cashback")
+        elif key == "Delivery unknown; price excludes delivery":
+            out.append("Plus delivery")
+        elif key == "Delivery included" and value not in ("A$0.00", "A$0"):
+            out.append(value.replace("A$", "$") + " delivery")
+        elif key == "Marketplace third-party seller":
+            out.append("Marketplace seller")
+        elif key in ("Condition", "Imported stock"):
+            out.append(r)
+    return out[:2]
+
+
+def payload(deal, ex, decision, config):
+    label, priority, tag = tier(ex, decision)
+    saving = (
+        f" ({decision.value_score:.0f}% off)" if decision.value_score and decision.value_score >= 1 else ""
+    )
+    lines = [product_name(ex)[:80]]
+    detail = basis(decision.reason)
+    if decision.kind == "possible":
+        detail.append("Unverified")
+    lines.append(" · ".join(detail + catches(decision.restrictions)))
+    unconfirmed = [
+        req.text
+        for m in decision.wishlist_matches
+        if m.fit
+        for fit, req in zip(m.fit.requirements, m.item.interpretation.requirements, strict=True)
+        if req.hard and fit.status == "unknown"
+    ]
+    if unconfirmed:
+        lines.append("Not confirmed: " + ", ".join(unconfirmed[:2]))
+    wishlist = [m.item.text for m in decision.wishlist_matches]
+    if wishlist:
+        lines.append("On your wishlist: " + ", ".join(wishlist))
     result = {
-        "title": f"{title} — A${decision.effective_price:.2f}"[:220],
-        "message": "\n".join(parts)[:3900],
-        "priority": 4 if decision.kind in ("evidence", "wishlist_target") else 3,
-        "tags": ["shopping_cart"],
+        "title": f"{label} · {money(decision.effective_price)}{saving}",
+        "message": "\n".join(line for line in lines if line)[:3900],
+        "priority": priority,
+        "tags": [tag],
     }
     if url := safe_url(deal.deal_url):
         result["click"] = url
